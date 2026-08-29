@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -55,9 +56,15 @@ class FlutterLocalNotificationService implements NotificationService {
   Future<void> init() async {
     if (_ready) return;
     tzdata.initializeTimeZones();
-    // A more precise local zone can be resolved with the `flutter_timezone`
-    // package later; the device default is adequate for day-level reminders.
-    tz.setLocalLocation(tz.local);
+    // Resolve the real device zone so reminders fire at the intended wall-clock
+    // time (e.g. 09:00 local), correct across DST changes. Falls back to UTC.
+    try {
+      final info = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(info.identifier));
+    } catch (e) {
+      debugPrint('Anniv: could not resolve local timezone, using UTC: $e');
+      tz.setLocalLocation(tz.getLocation('Etc/UTC'));
+    }
 
     const settings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
