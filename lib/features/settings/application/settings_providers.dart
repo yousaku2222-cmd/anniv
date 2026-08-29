@@ -21,6 +21,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> completeOnboarding() =>
       update((s) => s.copyWith(onboardingDone: true));
+
+  /// Replace all settings, used when restoring a backup. Onboarding stays done
+  /// so the user isn't sent back to the intro.
+  Future<void> replace(AppSettings settings) =>
+      update((_) => settings.copyWith(onboardingDone: true));
 }
 
 final settingsProvider =

@@ -45,6 +45,9 @@ class GroupsNotifier extends Notifier<List<EventGroup>> {
         for (final g in state)
           g.copyWith(order: orderedIds.indexOf(g.id)),
       ]);
+
+  /// Wholesale replace, used when restoring a backup.
+  Future<void> replaceAll(List<EventGroup> groups) => _commit([...groups]);
 }
 
 final groupsProvider =

@@ -7,6 +7,8 @@ import 'app.dart';
 import 'core/providers/shared_preferences_provider.dart';
 import 'features/notifications/application/notification_providers.dart';
 import 'features/notifications/data/notification_service.dart';
+import 'features/widget/application/home_widget_providers.dart';
+import 'features/widget/data/home_widget_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +31,7 @@ Future<void> main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         notificationServiceProvider.overrideWithValue(notifications),
+        homeWidgetServiceProvider.overrideWithValue(const AppHomeWidgetService()),
       ],
       child: const AnnivApp(),
     ),

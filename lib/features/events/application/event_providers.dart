@@ -71,6 +71,9 @@ class EventsNotifier extends Notifier<List<Event>> {
   Future<void> delete(String id) =>
       _commit([for (final e in state) if (e.id != id) e]);
 
+  /// Wholesale replace, used when restoring a backup.
+  Future<void> replaceAll(List<Event> events) => _commit([...events]);
+
   Event? byId(String id) {
     for (final e in state) {
       if (e.id == id) return e;

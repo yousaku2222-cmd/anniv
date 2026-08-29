@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/time/day_time.dart';
+import '../../backup/application/backup_controller.dart';
+import '../../backup/domain/backup_codec.dart';
 import '../../groups/application/group_providers.dart';
 import '../application/settings_providers.dart';
 import '../domain/app_settings.dart';
@@ -90,11 +92,20 @@ class SettingsScreen extends ConsumerWidget {
           const _GroupManager(),
           const Divider(height: 1),
           const _Header('データ'),
-          const ListTile(
-            title: Text('バックアップ / 復元'),
-            subtitle: Text('JSON書き出し — 近日対応（Sprint 4）'),
-            enabled: false,
+          ListTile(
+            leading: const Icon(Icons.ios_share),
+            title: const Text('バックアップを書き出す'),
+            subtitle: const Text('記念日・グループ・設定を JSON で共有'),
+            onTap: () => _exportBackup(context, ref),
           ),
+          ListTile(
+            leading: const Icon(Icons.settings_backup_restore),
+            title: const Text('バックアップから復元'),
+            subtitle: const Text('書き出した JSON を貼り付けて取り込み'),
+            onTap: () => _restoreBackup(context, ref),
+          ),
+          const Divider(height: 1),
+          const _Header('その他'),
           const ListTile(
             title: Text('広告を非表示にする'),
             subtitle: Text('買い切り — 近日対応（Sprint 5）'),
@@ -103,6 +114,63 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _exportBackup(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(backupControllerProvider).shareBackup();
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('書き出しに失敗しました：$e')));
+    }
+  }
+
+  Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final source = await showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('バックアップから復元'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('書き出した JSON を貼り付けてください。'
+                '現在のデータはすべて置き換えられます。'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              maxLines: 6,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: '{ "app": "anniv", ... }',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('キャンセル')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('復元')),
+        ],
+      ),
+    );
+
+    if (source == null || source.trim().isEmpty) return;
+    try {
+      final count = await ref.read(backupControllerProvider).restoreFromJson(source);
+      messenger.showSnackBar(
+          SnackBar(content: Text('$count 件の記念日を復元しました')));
+    } on BackupFormatException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('復元に失敗しました：$e')));
+    }
   }
 }
 

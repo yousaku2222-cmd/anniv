@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'features/notifications/application/notification_providers.dart';
 import 'features/settings/application/settings_providers.dart';
 import 'features/settings/domain/app_settings.dart';
+import 'features/widget/application/home_widget_providers.dart';
 
 class AnnivApp extends ConsumerWidget {
   const AnnivApp({super.key});
@@ -18,6 +19,8 @@ class AnnivApp extends ConsumerWidget {
 
     // Activates notification scheduling and reschedules on every launch.
     ref.watch(notificationSyncProvider);
+    // Keeps the home-screen widget in sync with the next upcoming event.
+    ref.watch(homeWidgetSyncProvider);
 
     return MaterialApp.router(
       title: 'Anniv',

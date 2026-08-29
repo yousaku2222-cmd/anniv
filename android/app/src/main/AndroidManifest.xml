@@ -37,6 +37,19 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- Home-screen widget (home_widget plugin). Data is pushed from Flutter. -->
+        <receiver
+            android:name=".AnnivWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="es.antonborri.home_widget.action.LAUNCH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/anniv_widget_info" />
+        </receiver>
+
         <!-- Re-arm scheduled reminders after a reboot / app update. -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"

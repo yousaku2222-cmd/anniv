@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/anniv_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    android:background="@drawable/anniv_widget_background"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/anniv_widget_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="#FF4C4F68"
+        android:textSize="13sp"
+        tools:ignore="HardcodedText"
+        android:text="記念日を追加" />
+
+    <TextView
+        android:id="@+id/anniv_widget_count"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="#FFC07D24"
+        android:textStyle="bold"
+        android:textSize="30sp"
+        tools:ignore="HardcodedText"
+        android:text="—" />
+
+    <TextView
+        android:id="@+id/anniv_widget_caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="#FF6F7189"
+        android:textSize="12sp"
+        tools:ignore="HardcodedText"
+        android:text="" />
+
+</LinearLayout>
