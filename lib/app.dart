@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/notifications/application/notification_providers.dart';
 import 'features/settings/application/settings_providers.dart';
 import 'features/settings/domain/app_settings.dart';
 
@@ -14,6 +15,9 @@ class AnnivApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(settingsProvider.select((s) => s.themeMode));
+
+    // Activates notification scheduling and reschedules on every launch.
+    ref.watch(notificationSyncProvider);
 
     return MaterialApp.router(
       title: 'Anniv',

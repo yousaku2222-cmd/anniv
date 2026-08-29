@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../groups/application/group_providers.dart';
+import '../../notifications/application/notification_providers.dart';
 import '../../settings/application/settings_providers.dart';
 import '../application/event_providers.dart';
 import '../domain/event.dart';
@@ -94,6 +95,9 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('タイトルを入力してください')));
       return;
+    }
+    if (_draft.notifications.isNotEmpty) {
+      await ref.read(notificationServiceProvider).requestPermission();
     }
     await ref.read(eventsProvider.notifier).save(_draft.copyWith(title: title));
     if (mounted) context.pop();
