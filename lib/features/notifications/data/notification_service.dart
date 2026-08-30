@@ -89,6 +89,8 @@ class FlutterLocalNotificationService implements NotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
     if (android != null) {
       final granted = await android.requestNotificationsPermission();
+      // No-op on Android 13+ (USE_EXACT_ALARM auto-granted); prompts on 12.
+      await android.requestExactAlarmsPermission();
       return granted ?? false;
     }
     final ios = _plugin.resolvePlatformSpecificImplementation<
@@ -136,7 +138,11 @@ class FlutterLocalNotificationService implements NotificationService {
           ),
           iOS: const DarwinNotificationDetails(),
         ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        // Reminders must land at the time the user chose (e.g. 09:00), so use an
+        // exact alarm. Granted automatically on Android 13+ via USE_EXACT_ALARM
+        // (permitted for calendar/reminder apps); on Android 12 the plugin's
+        // requestExactAlarmsPermission() covers it.
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: n.eventId,
       );
     } catch (e) {

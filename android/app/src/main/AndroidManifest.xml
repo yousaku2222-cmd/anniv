@@ -1,9 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Local notifications (flutter_local_notifications). Reminders use an
-         inexact schedule, so SCHEDULE_EXACT_ALARM is intentionally not requested. -->
+    <!-- Local notifications (flutter_local_notifications). Reminders fire at a
+         user-chosen time, so they use exact alarms. USE_EXACT_ALARM (Android 13+)
+         is auto-granted for calendar/reminder apps; SCHEDULE_EXACT_ALARM covers
+         Android 12 via the plugin's runtime request. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 
     <application
         android:label="Anniv"
