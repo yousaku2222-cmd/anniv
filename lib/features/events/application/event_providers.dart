@@ -80,6 +80,63 @@ class EventsNotifier extends Notifier<List<Event>> {
     }
     return null;
   }
+
+  /// Inserts the six demo events from the mock spec, dated relative to today so
+  /// the countdowns stay meaningful. Used by the "サンプルイベントを見る"
+  /// onboarding action. Skips any whose title already exists.
+  Future<void> seedSamples() async {
+    final now = DateTime.now();
+    final t = DateTime(now.year, now.month, now.day);
+
+    Event mk(
+      String title,
+      EventType type,
+      int offsetDays, {
+      RepeatRule repeat = RepeatRule.none,
+      CountMode mode = CountMode.daysLeft,
+      String? group,
+      List<int> notif = const [],
+      List<int> ms = const [],
+    }) {
+      return Event(
+        id: _uuid.v4(),
+        title: title,
+        type: type,
+        targetDate: t.add(Duration(days: offsetDays)),
+        repeat: repeat,
+        countMode: mode,
+        groupId: group,
+        notifications:
+            notif.map((o) => NotificationRule(offsetDays: o)).toList(),
+        milestones: ms,
+        createdAt: now,
+        updatedAt: now,
+      );
+    }
+
+    final samples = <Event>[
+      mk('推しのライブ', EventType.oshi, 7, group: 'oshi', notif: [0, 1, 3, 7]),
+      mk('付き合った記念日', EventType.anniversary, 19,
+          repeat: RepeatRule.yearly,
+          group: 'couple',
+          notif: [0, 7],
+          ms: [7, 100]),
+      mk('英検準2級 1次試験', EventType.exam, 35,
+          group: 'dai', notif: [1, 3, 7], ms: [30, 7]),
+      mk('年末年始 沖縄旅行', EventType.trip, 122,
+          group: 'family', notif: [0], ms: [90, 30, 7]),
+      mk('ママの誕生日', EventType.birthday, 157,
+          repeat: RepeatRule.yearly, group: 'family', notif: [0, 3]),
+      mk('赤ちゃん 100日記念', EventType.custom, -110,
+          mode: CountMode.daysSince, group: 'family', ms: [100, 176, 365]),
+    ];
+
+    final existingTitles = state.map((e) => e.title).toSet();
+    final fresh =
+        samples.where((e) => !existingTitles.contains(e.title)).toList();
+    if (fresh.isEmpty) return;
+    await _commit([...state, ...fresh]);
+  }
 }
 
 final eventsProvider =

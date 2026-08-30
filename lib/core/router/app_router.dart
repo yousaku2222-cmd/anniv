@@ -7,6 +7,7 @@ import '../../features/events/presentation/home_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/settings/application/settings_providers.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/widget/presentation/widget_setup_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Rebuilds the router once, when onboarding completes.
@@ -33,6 +34,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'settings',
             builder: (_, _) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: 'widget',
+            builder: (_, _) => const WidgetSetupScreen(),
           ),
           GoRoute(
             path: 'event/new',

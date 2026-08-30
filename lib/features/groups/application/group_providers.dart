@@ -11,11 +11,27 @@ final groupRepositoryProvider = Provider<GroupRepository>(
 
 class GroupsNotifier extends Notifier<List<EventGroup>> {
   static const _uuid = Uuid();
+  static const _seededKey = 'anniv.groups.seeded.v1';
 
   GroupRepository get _repo => ref.read(groupRepositoryProvider);
 
   @override
-  List<EventGroup> build() => _repo.loadAll();
+  List<EventGroup> build() {
+    final loaded = _repo.loadAll();
+    if (loaded.isNotEmpty) return loaded;
+
+    // First run (and only the first): seed the mock's default groups so the
+    // home filter bar has 家族 / カップル / 推し活 / 大事な日 out of the box.
+    // A user who deletes them all won't get them back.
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (prefs.getBool(_seededKey) ?? false) return const [];
+    final seeded = EventGroup.defaults;
+    Future.microtask(() async {
+      await _repo.saveAll(seeded);
+      await prefs.setBool(_seededKey, true);
+    });
+    return seeded;
+  }
 
   Future<void> _commit(List<EventGroup> next) async {
     next.sort((a, b) => a.order.compareTo(b.order));
@@ -52,3 +68,12 @@ class GroupsNotifier extends Notifier<List<EventGroup>> {
 
 final groupsProvider =
     NotifierProvider<GroupsNotifier, List<EventGroup>>(GroupsNotifier.new);
+
+/// The display name for a group id, or null when the id is null / unknown.
+final groupNameProvider = Provider.family<String?, String?>((ref, id) {
+  if (id == null) return null;
+  for (final g in ref.watch(groupsProvider)) {
+    if (g.id == id) return g.name;
+  }
+  return null;
+});

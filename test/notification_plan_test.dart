@@ -9,6 +9,7 @@ final _now = DateTime(2026, 8, 29, 8, 0);
 Event _event({
   required DateTime target,
   RepeatRule repeat = RepeatRule.none,
+  CountMode countMode = CountMode.daysLeft,
   List<NotificationRule> notifications = const [],
   List<int> milestones = const [],
   bool hidden = false,
@@ -21,6 +22,7 @@ Event _event({
     type: EventType.custom,
     targetDate: target,
     repeat: repeat,
+    countMode: countMode,
     notifications: notifications,
     milestones: milestones,
     isHidden: hidden,
@@ -65,19 +67,37 @@ void main() {
     expect(plan, isEmpty);
   });
 
-  test('milestones fire on the day at the default notify time', () {
+  test('elapsed milestones fire on the day at the default notify time', () {
     final plan = _plan([
-      _event(target: DateTime(2026, 6, 1), milestones: const [100]),
+      _event(
+        target: DateTime(2026, 6, 1),
+        countMode: CountMode.daysSince,
+        milestones: const [100],
+      ),
     ]);
     expect(plan, hasLength(1));
     expect(plan.single.fireAt, DateTime(2026, 9, 9, 9));
-    expect(plan.single.body, '100日を迎えました 🎉');
+    expect(plan.single.body, '100日目を迎えました 🎉');
+  });
+
+  test('countdown milestones fire N days before the occurrence', () {
+    final plan = _plan([
+      _event(
+        target: DateTime(2026, 12, 30),
+        milestones: const [90],
+      ),
+    ]);
+    expect(plan, hasLength(1));
+    // 2026-12-30 minus 90 days = 2026-10-01.
+    expect(plan.single.fireAt, DateTime(2026, 10, 1, 9));
+    expect(plan.single.body, 'あと90日です');
   });
 
   test('hidden events are skipped', () {
     final plan = _plan([
       _event(
         target: DateTime(2026, 6, 1),
+        countMode: CountMode.daysSince,
         milestones: const [100],
         hidden: true,
       ),

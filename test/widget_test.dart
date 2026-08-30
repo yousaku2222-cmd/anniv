@@ -21,7 +21,7 @@ void main() {
 
     expect(find.byType(OnboardingScreen), findsOneWidget);
 
-    await tester.tap(find.text('はじめる'));
+    await tester.tap(find.text('あとで許可する'));
     await tester.pumpAndSettle();
 
     expect(find.byType(HomeScreen), findsOneWidget);

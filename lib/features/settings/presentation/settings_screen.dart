@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/app_info.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/time/day_time.dart';
 import '../../backup/application/backup_controller.dart';
 import '../../backup/domain/backup_codec.dart';
@@ -20,127 +22,153 @@ class SettingsScreen extends ConsumerWidget {
     final notifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('設定')),
+      appBar: AppBar(
+        title: Text('設定',
+            style: TextStyle(
+                color: context.anniv.brand,
+                fontSize: 16,
+                fontWeight: FontWeight.w900)),
+      ),
       body: ListView(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenH, 8, AppSpacing.screenH, 40),
         children: [
-          const _Header('通知'),
-          ListTile(
-            title: const Text('既定の通知時刻'),
-            subtitle: const Text('新しい通知に使われる時刻'),
-            trailing: Text(settings.defaultNotifyTime.format(),
-                style: Theme.of(context).textTheme.titleMedium),
-            onTap: () async {
-              final picked = await showTimePicker(
+          const SectionLabel('通知'),
+          _Group(children: [
+            _Row(
+              icon: Icons.schedule,
+              title: '既定の通知時刻',
+              subtitle: '新規イベントの通知時刻',
+              trailing: Text(settings.defaultNotifyTime.format(),
+                  style: _valueStyle(context)),
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay(
+                    hour: settings.defaultNotifyTime.hour,
+                    minute: settings.defaultNotifyTime.minute,
+                  ),
+                );
+                if (picked != null) {
+                  await notifier.update((s) => s.copyWith(
+                      defaultNotifyTime: DayTime(picked.hour, picked.minute)));
+                }
+              },
+            ),
+            _Row(
+              icon: Icons.calendar_today_outlined,
+              title: '表示形式',
+              subtitle: '一覧の日付の見せ方',
+              trailing: _InlineDropdown<DisplayFormat>(
+                value: settings.displayFormat,
+                items: const {
+                  DisplayFormat.daysLeft: '残り日数',
+                  DisplayFormat.date: '日付',
+                },
+                onChanged: (v) =>
+                    notifier.update((s) => s.copyWith(displayFormat: v)),
+              ),
+            ),
+            _Row(
+              icon: Icons.view_week_outlined,
+              title: '週の開始曜日',
+              trailing: _InlineDropdown<WeekStart>(
+                value: settings.weekStart,
+                items: const {
+                  WeekStart.sunday: '日曜',
+                  WeekStart.monday: '月曜',
+                },
+                onChanged: (v) =>
+                    notifier.update((s) => s.copyWith(weekStart: v)),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          const SectionLabel('テーマ'),
+          _Group(children: [
+            _Row(
+              icon: Icons.dark_mode_outlined,
+              title: 'ダークモード',
+              trailing: Switch(
+                value: settings.themeMode == AppThemeMode.dark,
+                onChanged: (on) => notifier.update((s) => s.copyWith(
+                    themeMode:
+                        on ? AppThemeMode.dark : AppThemeMode.light)),
+              ),
+            ),
+            _Row(
+              icon: Icons.brightness_auto_outlined,
+              title: '端末の設定に合わせる',
+              trailing: Switch(
+                value: settings.themeMode == AppThemeMode.system,
+                onChanged: (on) => notifier.update((s) => s.copyWith(
+                    themeMode:
+                        on ? AppThemeMode.system : AppThemeMode.light)),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          const SectionLabel('グループ'),
+          _Group(children: [const _GroupManager()]),
+          const SizedBox(height: 20),
+          const SectionLabel('データ'),
+          _Group(children: [
+            _Row(
+              icon: Icons.upload_outlined,
+              title: 'バックアップ',
+              subtitle: '全イベントを JSON で書き出し',
+              onTap: () => _exportBackup(context, ref),
+            ),
+            _Row(
+              icon: Icons.download_outlined,
+              title: '復元',
+              subtitle: 'バックアップから読み込み',
+              onTap: () => _restoreBackup(context, ref),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          const SectionLabel('アプリ'),
+          _Group(children: [
+            const _RemoveAdsRow(),
+            _Row(
+              icon: Icons.info_outline,
+              title: 'バージョン',
+              trailing: Text(AppInfo.version, style: _valueStyle(context)),
+            ),
+            _Row(
+              icon: Icons.privacy_tip_outlined,
+              title: 'プライバシーポリシー',
+              trailing: const Icon(Icons.open_in_new, size: 18),
+              onTap: () => _openUrl(context, AppInfo.privacyPolicyUrl),
+            ),
+            _Row(
+              icon: Icons.description_outlined,
+              title: 'オープンソースライセンス',
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => showLicensePage(
                 context: context,
-                initialTime: TimeOfDay(
-                  hour: settings.defaultNotifyTime.hour,
-                  minute: settings.defaultNotifyTime.minute,
-                ),
-              );
-              if (picked != null) {
-                await notifier.update((s) => s.copyWith(
-                    defaultNotifyTime: DayTime(picked.hour, picked.minute)));
-              }
-            },
-          ),
-          const Divider(height: 1),
-          const _Header('表示'),
-          ListTile(
-            title: const Text('カードの既定表示'),
-            trailing: DropdownButton<DisplayFormat>(
-              value: settings.displayFormat,
-              underline: const SizedBox.shrink(),
-              items: const [
-                DropdownMenuItem(
-                    value: DisplayFormat.daysLeft, child: Text('残り日数')),
-                DropdownMenuItem(value: DisplayFormat.date, child: Text('日付')),
-              ],
-              onChanged: (v) => v == null
-                  ? null
-                  : notifier.update((s) => s.copyWith(displayFormat: v)),
+                applicationName: AppInfo.appName,
+                applicationVersion: AppInfo.version,
+                applicationLegalese: AppInfo.legalese,
+              ),
             ),
-          ),
-          ListTile(
-            title: const Text('週の開始曜日'),
-            trailing: DropdownButton<WeekStart>(
-              value: settings.weekStart,
-              underline: const SizedBox.shrink(),
-              items: const [
-                DropdownMenuItem(value: WeekStart.sunday, child: Text('日曜')),
-                DropdownMenuItem(value: WeekStart.monday, child: Text('月曜')),
-              ],
-              onChanged: (v) => v == null
-                  ? null
-                  : notifier.update((s) => s.copyWith(weekStart: v)),
-            ),
-          ),
-          ListTile(
-            title: const Text('テーマ'),
-            trailing: DropdownButton<AppThemeMode>(
-              value: settings.themeMode,
-              underline: const SizedBox.shrink(),
-              items: const [
-                DropdownMenuItem(
-                    value: AppThemeMode.system, child: Text('システム')),
-                DropdownMenuItem(value: AppThemeMode.light, child: Text('ライト')),
-                DropdownMenuItem(value: AppThemeMode.dark, child: Text('ダーク')),
-              ],
-              onChanged: (v) => v == null
-                  ? null
-                  : notifier.update((s) => s.copyWith(themeMode: v)),
-            ),
-          ),
-          const Divider(height: 1),
-          const _Header('グループ'),
-          const _GroupManager(),
-          const Divider(height: 1),
-          const _Header('データ'),
-          ListTile(
-            leading: const Icon(Icons.ios_share),
-            title: const Text('バックアップを書き出す'),
-            subtitle: const Text('記念日・グループ・設定を JSON で共有'),
-            onTap: () => _exportBackup(context, ref),
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings_backup_restore),
-            title: const Text('バックアップから復元'),
-            subtitle: const Text('書き出した JSON を貼り付けて取り込み'),
-            onTap: () => _restoreBackup(context, ref),
-          ),
-          const Divider(height: 1),
-          const _Header('その他'),
-          const _RemoveAdsTile(),
-          const ListTile(
-            title: Text('バージョン'),
-            trailing: Text(AppInfo.version),
-          ),
-          ListTile(
-            title: const Text('プライバシーポリシー'),
-            trailing: const Icon(Icons.open_in_new, size: 18),
-            onTap: () => _openUrl(context, AppInfo.privacyPolicyUrl),
-          ),
-          ListTile(
-            title: const Text('オープンソースライセンス'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => showLicensePage(
-              context: context,
-              applicationName: AppInfo.appName,
-              applicationVersion: AppInfo.version,
-              applicationLegalese: AppInfo.legalese,
-            ),
-          ),
+          ]),
         ],
       ),
     );
   }
 
+  static TextStyle _valueStyle(BuildContext context) => TextStyle(
+        color: context.anniv.ink,
+        fontWeight: FontWeight.w900,
+        fontSize: 14,
+      );
+
   Future<void> _openUrl(BuildContext context, String url) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final ok = await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
-      );
+      final ok = await launchUrl(Uri.parse(url),
+          mode: LaunchMode.externalApplication);
       if (!ok) {
         messenger.showSnackBar(
             const SnackBar(content: Text('ページを開けませんでした')));
@@ -179,7 +207,6 @@ class SettingsScreen extends ConsumerWidget {
               controller: controller,
               maxLines: 6,
               decoration: const InputDecoration(
-                border: OutlineInputBorder(),
                 hintText: '{ "app": "anniv", ... }',
               ),
             ),
@@ -198,7 +225,8 @@ class SettingsScreen extends ConsumerWidget {
 
     if (source == null || source.trim().isEmpty) return;
     try {
-      final count = await ref.read(backupControllerProvider).restoreFromJson(source);
+      final count =
+          await ref.read(backupControllerProvider).restoreFromJson(source);
       messenger.showSnackBar(
           SnackBar(content: Text('$count 件の記念日を復元しました')));
     } on BackupFormatException catch (e) {
@@ -209,18 +237,117 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _RemoveAdsTile extends ConsumerWidget {
-  const _RemoveAdsTile();
+/// A rounded card wrapping a set of [_Row]s, dividers drawn between them.
+class _Group extends StatelessWidget {
+  const _Group({required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = context.anniv;
+    return AnnivCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      child: Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) Divider(height: 1, color: a.line),
+            children[i],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Row extends StatelessWidget {
+  const _Row({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = context.anniv;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            AnnivIconChip(icon: icon, color: a.sub, size: 40),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: a.ink)),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle!,
+                        style: TextStyle(fontSize: 12, color: a.sub)),
+                  ],
+                ],
+              ),
+            ),
+            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InlineDropdown<T> extends StatelessWidget {
+  const _InlineDropdown({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final T value;
+  final Map<T, String> items;
+  final void Function(T) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<T>(
+      value: value,
+      underline: const SizedBox.shrink(),
+      style: SettingsScreen._valueStyle(context),
+      items: [
+        for (final e in items.entries)
+          DropdownMenuItem(value: e.key, child: Text(e.value)),
+      ],
+      onChanged: (v) => v == null ? null : onChanged(v),
+    );
+  }
+}
+
+class _RemoveAdsRow extends ConsumerWidget {
+  const _RemoveAdsRow();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final a = context.anniv;
     final removed = ref.watch(adsRemovedProvider);
     if (removed) {
-      return ListTile(
-        leading: Icon(Icons.check_circle_outline,
-            color: Theme.of(context).colorScheme.primary),
-        title: const Text('広告を非表示にしました'),
-        subtitle: const Text('ご購入ありがとうございます'),
+      return _Row(
+        icon: Icons.check_circle_outline,
+        title: '広告を非表示にしました',
+        subtitle: 'ご購入ありがとうございます',
       );
     }
 
@@ -229,59 +356,51 @@ class _RemoveAdsTile extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
 
     if (!purchase.storeAvailable) {
-      return const ListTile(
-        title: Text('広告を非表示にする'),
-        subtitle: Text('現在ストアに接続できません'),
-        enabled: false,
+      return _Row(
+        icon: Icons.block_outlined,
+        title: '広告を除去する',
+        subtitle: '現在ストアに接続できません',
       );
     }
 
-    final priceSuffix =
-        purchase.priceLabel.isEmpty ? '' : '（${purchase.priceLabel}）';
+    final price =
+        purchase.priceLabel.isEmpty ? '買い切り' : purchase.priceLabel;
 
     return Column(
       children: [
-        ListTile(
-          leading: const Icon(Icons.block_outlined),
-          title: Text('広告を非表示にする$priceSuffix'),
-          subtitle: const Text('一度の購入でずっと広告なし'),
+        _Row(
+          icon: Icons.block_outlined,
+          title: '広告を除去する',
+          subtitle: 'バナー除去（一度の購入でずっと）',
           trailing: purchase.pending
               ? const SizedBox(
-                  width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-              : null,
-          enabled: !purchase.pending && purchase.removeAdsProduct != null,
-          onTap: () {
-            if (purchase.error != null) {
-              messenger.showSnackBar(SnackBar(content: Text(purchase.error!)));
-            }
-            controller.buyRemoveAds();
-          },
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : Text(price,
+                  style: TextStyle(
+                      color: a.brand,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14)),
+          onTap: (purchase.pending || purchase.removeAdsProduct == null)
+              ? null
+              : () {
+                  if (purchase.error != null) {
+                    messenger.showSnackBar(
+                        SnackBar(content: Text(purchase.error!)));
+                  }
+                  controller.buyRemoveAds();
+                },
         ),
-        ListTile(
-          dense: true,
-          title: const Text('購入を復元'),
-          enabled: !purchase.pending,
-          onTap: () => controller.restore(),
+        Divider(height: 1, color: a.line),
+        _Row(
+          icon: Icons.restore,
+          title: '購入を復元',
+          onTap: purchase.pending ? null : () => controller.restore(),
         ),
       ],
     );
   }
-}
-
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-        ),
-      );
 }
 
 class _GroupManager extends ConsumerWidget {
@@ -289,27 +408,50 @@ class _GroupManager extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final a = context.anniv;
     final groups = ref.watch(groupsProvider);
     return Column(
       children: [
         for (final g in groups)
-          ListTile(
-            title: Text(g.name),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () =>
-                  ref.read(groupsProvider.notifier).delete(g.id),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                Icon(Icons.folder_outlined, size: 18, color: a.sub),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(g.name,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700, color: a.ink)),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(Icons.delete_outline, color: a.faint),
+                  onPressed: () =>
+                      ref.read(groupsProvider.notifier).delete(g.id),
+                ),
+              ],
             ),
           ),
-        ListTile(
-          leading: const Icon(Icons.add),
-          title: const Text('グループを追加'),
+        InkWell(
           onTap: () async {
             final name = await _promptName(context);
             if (name != null && name.trim().isNotEmpty) {
               await ref.read(groupsProvider.notifier).add(name.trim());
             }
           },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                Icon(Icons.add, size: 18, color: a.brand),
+                const SizedBox(width: 12),
+                Text('グループを追加',
+                    style: TextStyle(
+                        color: a.brand, fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
         ),
       ],
     );

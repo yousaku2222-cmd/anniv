@@ -93,9 +93,11 @@ class NotificationPlanner {
       }
     }
 
-    // Day-count milestones (e.g. 100 days) fire on the day itself.
+    // Day-count milestones fire at the default time on the day they land.
+    // Countdown events read "あと N 日"; elapsed events read "N 日目".
+    final milestoneIsBefore = Countdown.milestoneIsBefore(event);
     for (final m in event.milestones) {
-      final date = Countdown.milestoneDate(event, m);
+      final date = Countdown.milestoneDate(event, m, now);
       final fireAt = settings.defaultNotifyTime.onDate(date);
       if (fireAt.isAfter(now) && fireAt.isBefore(horizon)) {
         yield ScheduledNotification(
@@ -103,7 +105,7 @@ class NotificationPlanner {
           eventId: event.id,
           fireAt: fireAt,
           title: event.title,
-          body: '$m日を迎えました 🎉',
+          body: milestoneIsBefore ? 'あと$m日です' : '$m日目を迎えました 🎉',
         );
       }
     }

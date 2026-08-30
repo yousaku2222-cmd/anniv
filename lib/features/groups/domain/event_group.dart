@@ -15,6 +15,14 @@ class EventGroup {
   /// Position in the group list / filter bar. Lower comes first.
   final int order;
 
+  /// The mock's starter groups, seeded on first run (see GroupsNotifier).
+  static const List<EventGroup> defaults = [
+    EventGroup(id: 'family', name: '家族', order: 0),
+    EventGroup(id: 'couple', name: 'カップル', order: 1),
+    EventGroup(id: 'oshi', name: '推し活', order: 2),
+    EventGroup(id: 'dai', name: '大事な日', order: 3),
+  ];
+
   EventGroup copyWith({String? name, int? order}) => EventGroup(
         id: id,
         name: name ?? this.name,

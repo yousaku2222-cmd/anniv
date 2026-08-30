@@ -70,31 +70,61 @@ class Countdown {
   static int displayCount(Event event, DateTime today) {
     switch (event.countMode) {
       case CountMode.daysLeft:
+      case CountMode.repeatNext:
         return daysLeft(event, today);
       case CountMode.daysSince:
         return daysSince(event, today);
     }
   }
 
-  /// The date a given day-count [milestone] falls on (targetDate + N days).
-  static DateTime milestoneDate(Event event, int milestone) => DateTime(
-        event.targetDate.year,
-        event.targetDate.month,
-        event.targetDate.day + milestone,
-      );
+  /// The date a given day-count [milestone] falls on.
+  ///
+  /// * elapsed events ([CountMode.daysSince]) — `targetDate + N` ("N日目")
+  /// * countdown events — `nextOccurrence - N` ("N日前")
+  static DateTime milestoneDate(Event event, int milestone, DateTime today) {
+    if (event.countMode == CountMode.daysSince) {
+      return DateTime(event.targetDate.year, event.targetDate.month,
+          event.targetDate.day + milestone);
+    }
+    final occ = nextOccurrence(event, today);
+    return DateTime(occ.year, occ.month, occ.day - milestone);
+  }
+
+  /// Whether a milestone reads as "before" the day (countdown) or "since" it.
+  static bool milestoneIsBefore(Event event) =>
+      event.countMode != CountMode.daysSince;
+
+  /// Every milestone with its date, signed day distance and whether it's passed.
+  /// Sorted soonest-first among the upcoming ones, passed ones last.
+  static List<({int days, DateTime date, int daysAway, bool passed})>
+      allMilestones(Event event, DateTime today) {
+    final list = [
+      for (final m in ({...event.milestones}.toList()..sort()))
+        () {
+          final date = milestoneDate(event, m, today);
+          final away = daysBetween(today, date);
+          return (days: m, date: date, daysAway: away, passed: away < 0);
+        }(),
+    ];
+    list.sort((a, b) {
+      if (a.passed != b.passed) return a.passed ? 1 : -1;
+      return a.daysAway.compareTo(b.daysAway);
+    });
+    return list;
+  }
 
   /// The soonest milestone that is today or still ahead, or null if none remain.
   static ({int days, DateTime date, int daysAway})? upcomingMilestone(
       Event event, DateTime today) {
-    final sorted = [...event.milestones]..sort();
-    for (final m in sorted) {
-      final date = milestoneDate(event, m);
-      final away = daysBetween(today, date);
-      if (away >= 0) return (days: m, date: date, daysAway: away);
+    for (final m in allMilestones(event, today)) {
+      if (!m.passed) return (days: m.days, date: m.date, daysAway: m.daysAway);
     }
     return null;
   }
 
   /// Default milestones to celebrate for a "days since" event.
   static const List<int> defaultMilestones = [100, 200, 365, 500, 1000];
+
+  /// Default "N日前" milestones for a countdown event.
+  static const List<int> defaultBeforeMilestones = [90, 30, 7];
 }

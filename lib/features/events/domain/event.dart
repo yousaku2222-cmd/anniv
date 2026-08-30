@@ -4,7 +4,7 @@ import '../../../core/time/day_time.dart';
 
 /// What kind of day this is. Chosen from a template; drives the default icon,
 /// colour and notification preset.
-enum EventType { birthday, anniversary, exam, trip, custom }
+enum EventType { birthday, anniversary, exam, trip, oshi, custom }
 
 /// How the date recurs.
 enum RepeatRule { none, yearly, monthly, weekly }
@@ -16,6 +16,10 @@ enum CountMode {
 
   /// Days elapsed since the target date — "365日".
   daysSince,
+
+  /// Days until the next repeat occurrence — same maths as [daysLeft] but
+  /// surfaced as its own choice in the create flow for repeating events.
+  repeatNext,
 }
 
 T _enumByName<T extends Enum>(List<T> values, String? name, T fallback) {

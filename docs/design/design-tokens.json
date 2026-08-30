@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "name": "Anniv Design Tokens",
+    "version": "1.0",
+    "updated": "2026-08-30",
+    "source": "anniv-mockup.html (CSS variables, extracted verified values)"
+  },
+  "colors": {
+    "light": {
+      "bg": "#FBF7F0",
+      "surface": "#FFFFFF",
+      "line": "#EFE5D8",
+      "ink": "#2D2620",
+      "sub": "#8A7A6B",
+      "faint": "#C9BBA9",
+      "chipbg": "#F4ECDF",
+      "brand": "#E85D43",
+      "brand2": "#C94A32",
+      "brandSoft": "#FBEAE4",
+      "shadow": "0 18px 45px -18px rgba(62,42,25,.35)"
+    },
+    "dark": {
+      "bg": "#1C1713",
+      "surface": "#28211B",
+      "line": "#3B322A",
+      "ink": "#F5EEE5",
+      "sub": "#A49381",
+      "faint": "#6F6456",
+      "chipbg": "#33291F",
+      "brand": "#F0785D",
+      "brand2": "#FF8A6E",
+      "brandSoft": "#3A241E",
+      "shadow": "0 22px 50px -18px rgba(0,0,0,.65)"
+    }
+  },
+  "eventTypeColors": {
+    "birthday": "#F08FA8",
+    "anniversary": "#E85D43",
+    "exam": "#6E8BEF",
+    "trip": "#43B582",
+    "oshi": "#9B7BE8",
+    "custom": "#F0B84C"
+  },
+  "eventTypeIcons": {
+    "birthday": "cake",
+    "anniversary": "heart",
+    "exam": "book",
+    "trip": "plane",
+    "oshi": "star",
+    "custom": "spark"
+  },
+  "eventTypeDefaultNotifications": {
+    "birthday": [0, 3],
+    "anniversary": [0, 7],
+    "exam": [1, 3, 7],
+    "trip": [0],
+    "oshi": [0, 1, 3, 7],
+    "custom": [0, 1, 3, 7]
+  },
+  "notificationOffsets": {"dayOf": 0, "before1": 1, "before3": 3, "before7": 7},
+  "defaultNotifyTime": "09:00",
+  "typography": {
+    "uiFont": "Zen Kaku Gothic New",
+    "numeralFont": "Outfit",
+    "roles": [
+      {"role": "screenTitle", "size": 21, "weight": 900},
+      {"role": "brandName", "size": 19, "weight": 900},
+      {"role": "cardTitle", "size": 15.5, "weight": 700},
+      {"role": "cardNumeral", "size": 32, "weight": 800},
+      {"role": "cardUnit", "size": 11, "weight": 700},
+      {"role": "detailHeroNumeral", "size": 76, "weight": 800},
+      {"role": "detailTitle", "size": 21, "weight": 900},
+      {"role": "sectionLabel", "size": 12, "weight": 900},
+      {"role": "body", "size": 13, "weight": 500},
+      {"role": "caption", "size": 11, "weight": 500},
+      {"role": "pill", "size": 11, "weight": 700},
+      {"role": "button", "size": 15, "weight": 700}
+    ]
+  },
+  "radius": {"card": 24, "row": 18, "button": 18, "iconChip": 16, "pill": 999, "seg": 14, "screen": 46, "phoneBezel": 56},
+  "spacing": {"screenPaddingH": 20, "screenPaddingTop": 64, "cardGap": 12, "sectionLabelGap": 9, "hdrGap": 10},
+  "metrics": {
+    "iconChip": 46,
+    "iconChipSmall": 40,
+    "cardAccentBar": 5,
+    "fab": 58,
+    "phoneWidth": 392,
+    "homeIndicator": "134x5"
+  },
+  "widget": {"mediumItems": 4, "smallItems": 1, "previewGradient": "160deg #7FB2E5 #5B8CD6 #3F6AB8", "rowStyle": "rgba(255,255,255,.22) blur(10px)"}
+}
