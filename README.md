@@ -46,10 +46,17 @@ flutter run
 
 ## 次のスプリント
 
-- 1.5 DB エンジン選定（Isar / Drift）— リポジトリ実装の差し替えのみ
-- 3   通知（flutter_local_notifications ＋ timezone）
-- 4   ホーム画面ウィジェット（home_widget）＋ JSON バックアップ
 - 5   AdMob ＋ 広告除去 IAP ＋ ストア申請
+- iOS ウィジェット Extension（Xcode、`docs/WIDGET_SETUP.md`）
+
+## プライバシーポリシーの公開手順
+
+1. `docs/privacy-policy.html` を GitHub Pages 等に公開する
+   （例: このリポジトリを GitHub に push → Settings → Pages → `main /docs` → URL は
+   `https://<user>.github.io/anniv/privacy-policy.html`）
+2. 公開 URL を `lib/core/app_info.dart` の `privacyPolicyUrl` に設定
+3. 同じ URL を App Store / Google Play のストア掲載情報に登録
+4. 内容を編集するときは `docs/privacy-policy.md` を直し、HTML にも反映する
 
 > 注意: このプロジェクトは ASCII パス（`C:\dev\...`）必須。ユーザープロファイル名の
 > 全角括弧で Dart analysis server がクラッシュするため。

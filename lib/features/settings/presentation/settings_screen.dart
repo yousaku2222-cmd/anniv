@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/app_info.dart';
 import '../../../core/time/day_time.dart';
 import '../../backup/application/backup_controller.dart';
 import '../../backup/domain/backup_codec.dart';
@@ -113,21 +115,43 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const ListTile(
             title: Text('バージョン'),
-            trailing: Text('1.0.0'),
+            trailing: Text(AppInfo.version),
+          ),
+          ListTile(
+            title: const Text('プライバシーポリシー'),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () => _openUrl(context, AppInfo.privacyPolicyUrl),
           ),
           ListTile(
             title: const Text('オープンソースライセンス'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => showLicensePage(
               context: context,
-              applicationName: 'Anniv',
-              applicationVersion: '1.0.0',
-              applicationLegalese: '© 2026',
+              applicationName: AppInfo.appName,
+              applicationVersion: AppInfo.version,
+              applicationLegalese: AppInfo.legalese,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _openUrl(BuildContext context, String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final ok = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!ok) {
+        messenger.showSnackBar(
+            const SnackBar(content: Text('ページを開けませんでした')));
+      }
+    } catch (_) {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('ページを開けませんでした')));
+    }
   }
 
   Future<void> _exportBackup(BuildContext context, WidgetRef ref) async {
