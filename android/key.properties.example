@@ -1,0 +1,12 @@
+# Copy to android/key.properties and fill in. This file must NOT be committed.
+#
+# Generate the upload keystore (run once, keep the .jks file safe and backed up):
+#
+#   keytool -genkey -v -keystore %USERPROFILE%\anniv-upload.jks \
+#     -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=upload
+# Absolute path to the .jks, e.g. C:/Users/you/anniv-upload.jks
+storeFile=CHANGE_ME
