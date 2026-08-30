@@ -5,6 +5,8 @@ import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../ad_ids.dart';
+
 /// Owns one-time ad SDK setup: consent (UMP), iOS App Tracking Transparency,
 /// and `MobileAds.initialize`. [init] is idempotent, so callers (e.g. the
 /// banner widget) can `await` it before loading an ad.
@@ -42,6 +44,11 @@ class GoogleAdService implements AdService {
         if (status == TrackingStatus.notDetermined) {
           await AppTrackingTransparency.requestTrackingAuthorization();
         }
+      }
+      if (AdIds.testDeviceIds.isNotEmpty) {
+        await MobileAds.instance.updateRequestConfiguration(
+          RequestConfiguration(testDeviceIds: AdIds.testDeviceIds),
+        );
       }
       await MobileAds.instance.initialize();
       _ready = true;

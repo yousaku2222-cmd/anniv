@@ -4,9 +4,9 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<!-- AdMob: TEST app id — replace with the real one before release. See docs/STORE_SETUP.md -->
+	<!-- AdMob App ID (app: Anniv, publisher pub-3818461038959537). -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-3818461038959537~2504402034</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>広告の表示を最適化するために使用されます。</string>
 	<!-- SKAdNetwork: Google + common ad networks for iOS 14+ attribution.
