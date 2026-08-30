@@ -236,7 +236,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.4,
+        childAspectRatio: 1.55,
         children: [
           for (final t in EventTemplate.all)
             _TemplateCard(
@@ -586,26 +586,19 @@ class _TemplateCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           children: [
             AnnivIconChip(icon: template.icon, color: template.color, size: 40),
             const SizedBox(height: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(template.label,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: a.ink,
-                        fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(
-                  template.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: a.sub, height: 1.4),
-                ),
-              ],
+            Text(template.label,
+                style: TextStyle(
+                    fontWeight: FontWeight.w900, color: a.ink, fontSize: 14)),
+            const SizedBox(height: 4),
+            Text(
+              template.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11, color: a.sub, height: 1.4),
             ),
           ],
         ),

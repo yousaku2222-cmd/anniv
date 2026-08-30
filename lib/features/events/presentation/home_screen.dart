@@ -228,9 +228,12 @@ class _EventCard extends ConsumerWidget {
     final hot = hotPillText(event, today);
     final repeat = repeatChipText(event.repeat);
     final groupName = ref.watch(groupNameProvider(event.groupId));
-    final trailingChip = (hot != null || repeat != null)
+    final midChip = repeat ?? event.template.label;
+    final trailingRaw = (hot != null || repeat != null)
         ? (groupName ?? formatDotDate(event.targetDate))
         : (groupName ?? formatShortDate(event.targetDate));
+    // Don't show the same label twice (e.g. an 推し活 event in the 推し活 group).
+    final trailingChip = trailingRaw == midChip ? null : trailingRaw;
 
     return AnnivCard(
       onTap: () => context.push('/event/${event.id}'),
@@ -276,12 +279,10 @@ class _EventCard extends ConsumerWidget {
                             children: [
                               if (hot != null)
                                 AnnivPill(hot, tone: AnnivPillTone.brand),
-                              AnnivPill(
-                                repeat ?? event.template.label,
-                                tone: AnnivPillTone.neutral,
-                              ),
-                              AnnivPill(trailingChip,
-                                  tone: AnnivPillTone.neutral),
+                              AnnivPill(midChip, tone: AnnivPillTone.neutral),
+                              if (trailingChip != null)
+                                AnnivPill(trailingChip,
+                                    tone: AnnivPillTone.neutral),
                             ],
                           ),
                         ],
