@@ -111,6 +111,20 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text('買い切り — 近日対応（Sprint 5）'),
             enabled: false,
           ),
+          const ListTile(
+            title: Text('バージョン'),
+            trailing: Text('1.0.0'),
+          ),
+          ListTile(
+            title: const Text('オープンソースライセンス'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => showLicensePage(
+              context: context,
+              applicationName: 'Anniv',
+              applicationVersion: '1.0.0',
+              applicationLegalese: '© 2026',
+            ),
+          ),
         ],
       ),
     );
