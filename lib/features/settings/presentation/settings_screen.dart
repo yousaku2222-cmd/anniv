@@ -7,6 +7,7 @@ import '../../../core/time/day_time.dart';
 import '../../backup/application/backup_controller.dart';
 import '../../backup/domain/backup_codec.dart';
 import '../../groups/application/group_providers.dart';
+import '../../purchase/application/purchase_providers.dart';
 import '../application/settings_providers.dart';
 import '../domain/app_settings.dart';
 
@@ -108,11 +109,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(height: 1),
           const _Header('その他'),
-          const ListTile(
-            title: Text('広告を非表示にする'),
-            subtitle: Text('買い切り — 近日対応（Sprint 5）'),
-            enabled: false,
-          ),
+          const _RemoveAdsTile(),
           const ListTile(
             title: Text('バージョン'),
             trailing: Text(AppInfo.version),
@@ -209,6 +206,65 @@ class SettingsScreen extends ConsumerWidget {
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('復元に失敗しました：$e')));
     }
+  }
+}
+
+class _RemoveAdsTile extends ConsumerWidget {
+  const _RemoveAdsTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final removed = ref.watch(adsRemovedProvider);
+    if (removed) {
+      return ListTile(
+        leading: Icon(Icons.check_circle_outline,
+            color: Theme.of(context).colorScheme.primary),
+        title: const Text('広告を非表示にしました'),
+        subtitle: const Text('ご購入ありがとうございます'),
+      );
+    }
+
+    final purchase = ref.watch(purchaseControllerProvider);
+    final controller = ref.read(purchaseControllerProvider.notifier);
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (!purchase.storeAvailable) {
+      return const ListTile(
+        title: Text('広告を非表示にする'),
+        subtitle: Text('現在ストアに接続できません'),
+        enabled: false,
+      );
+    }
+
+    final priceSuffix =
+        purchase.priceLabel.isEmpty ? '' : '（${purchase.priceLabel}）';
+
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.block_outlined),
+          title: Text('広告を非表示にする$priceSuffix'),
+          subtitle: const Text('一度の購入でずっと広告なし'),
+          trailing: purchase.pending
+              ? const SizedBox(
+                  width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+              : null,
+          enabled: !purchase.pending && purchase.removeAdsProduct != null,
+          onTap: () {
+            if (purchase.error != null) {
+              messenger.showSnackBar(SnackBar(content: Text(purchase.error!)));
+            }
+            controller.buyRemoveAds();
+          },
+        ),
+        ListTile(
+          dense: true,
+          title: const Text('購入を復元'),
+          enabled: !purchase.pending,
+          onTap: () => controller.restore(),
+        ),
+      ],
+    );
   }
 }
 

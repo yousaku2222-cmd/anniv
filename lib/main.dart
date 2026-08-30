@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'core/providers/shared_preferences_provider.dart';
+import 'features/ads/application/ad_providers.dart';
+import 'features/ads/data/ad_service.dart';
 import 'features/notifications/application/notification_providers.dart';
 import 'features/notifications/data/notification_service.dart';
 import 'features/widget/application/home_widget_providers.dart';
@@ -32,6 +34,7 @@ Future<void> main() async {
         sharedPreferencesProvider.overrideWithValue(prefs),
         notificationServiceProvider.overrideWithValue(notifications),
         homeWidgetServiceProvider.overrideWithValue(const AppHomeWidgetService()),
+        adServiceProvider.overrideWithValue(GoogleAdService()),
       ],
       child: const AnnivApp(),
     ),

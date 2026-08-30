@@ -41,6 +41,12 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- AdMob App ID. This is Google's TEST app id; replace with the real
+             one from the AdMob console before release. See docs/STORE_SETUP.md. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+
         <!-- Home-screen widget (home_widget plugin). Data is pushed from Flutter. -->
         <receiver
             android:name=".AnnivWidgetProvider"

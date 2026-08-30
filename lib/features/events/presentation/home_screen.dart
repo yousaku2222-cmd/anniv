@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/time/clock.dart';
+import '../../ads/presentation/banner_ad_widget.dart';
 import '../../groups/application/group_providers.dart';
 import '../application/event_providers.dart';
 import '../domain/event.dart';
@@ -50,6 +51,7 @@ class HomeScreen extends ConsumerWidget {
                     itemBuilder: (context, i) => _EventCard(event: events[i]),
                   ),
           ),
+          const BannerAdWidget(),
         ],
       ),
     );
