@@ -16,8 +16,9 @@
    | `lib/features/ads/ad_ids.dart` `useTestAds` | `false` |
    | `android/app/src/main/AndroidManifest.xml` `com.google.android.gms.ads.APPLICATION_ID` | Android アプリID（`ca-app-pub-…~…`） |
    | `ios/Runner/Info.plist` `GADApplicationIdentifier` | iOS アプリID |
-4. iOS のみ: `Info.plist` に `SKAdNetworkItems` を追加（Google 提供のリスト）
-   https://developers.google.com/admob/flutter/quick-start#update_your_infoplist
+4. iOS の `SKAdNetworkItems` は `Info.plist` に主要40件を記載済み。メディエーションを
+   追加する場合は各ネットワークのIDを追記
+   https://developers.google.com/admob/ios/3p-skadnetworks
 5. リリース前に**自分の端末をテストデバイス登録**して自己クリックを防ぐ
 6. EEA/UK 配信する場合は AdMob 管理画面で **UMP（同意）メッセージ**を作成
    （コードは `AdService._requestConsent()` で対応済み）
