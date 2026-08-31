@@ -22,6 +22,11 @@ class AppHomeWidgetService implements HomeWidgetService {
   static const String androidProvider = 'AnnivWidgetProvider';
   static const String iOSWidget = 'AnnivWidget';
 
+  /// iOS App Group shared between Runner and the AnnivWidget extension. Set once
+  /// in `main()` via `HomeWidget.setAppGroupId`; the Swift widget reads
+  /// `UserDefaults(suiteName:)` with this same id.
+  static const String appGroupId = 'group.com.annivapp.anniv';
+
   @override
   Future<void> render(WidgetSnapshot snapshot) async {
     try {

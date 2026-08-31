@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +17,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ja');
   final prefs = await SharedPreferences.getInstance();
+
+  // iOS: the widget extension reads its data from this shared App Group's
+  // UserDefaults. Must match the group id on both Xcode targets and in
+  // AnnivWidget.swift. No-op on Android.
+  await HomeWidget.setAppGroupId(AppHomeWidgetService.appGroupId);
 
   // Local notifications are mobile-only; on desktop dev builds or if the plugin
   // isn't available, fall back to a no-op so the app still boots.

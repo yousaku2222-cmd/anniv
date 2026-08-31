@@ -1,0 +1,580 @@
+<title>Anniv テスター募集キット</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  /* Palette lifted from Anniv's app design tokens (lib/core/theme/app_tokens.dart):
+     warm-cream ground, vermilion ("朱色") brand. */
+  :root {
+    --bg: #fbf7f0;
+    --surface: #ffffff;
+    --surface-alt: #f4ecdf;
+    --ink: #2d2620;
+    --ink-muted: #8a7a6b;
+    --border: #efe5d8;
+    --accent: #e85d43;
+    --accent-ink: #b23a26;
+    --accent-soft: #fbeae4;
+    --accent-contrast: #ffffff;
+    --shadow: 0 1px 2px rgba(62, 42, 25, 0.05), 0 10px 24px -14px rgba(62, 42, 25, 0.22);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1713;
+      --surface: #28211b;
+      --surface-alt: #33291f;
+      --ink: #f5eee5;
+      --ink-muted: #a49381;
+      --border: #3b322a;
+      --accent: #f0785d;
+      --accent-ink: #ffc9bb;
+      --accent-soft: #3a241e;
+      --accent-contrast: #1c1713;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 26px -14px rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #1c1713;
+    --surface: #28211b;
+    --surface-alt: #33291f;
+    --ink: #f5eee5;
+    --ink-muted: #a49381;
+    --border: #3b322a;
+    --accent: #f0785d;
+    --accent-ink: #ffc9bb;
+    --accent-soft: #3a241e;
+    --accent-contrast: #1c1713;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 26px -14px rgba(0, 0, 0, 0.6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  header.hero {
+    margin-bottom: 40px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    background: var(--accent-soft);
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', sans-serif;
+    font-weight: 900;
+    font-size: clamp(1.5rem, 4vw, 1.9rem);
+    margin: 0 0 10px;
+    text-wrap: balance;
+    letter-spacing: 0.01em;
+  }
+
+  .lede {
+    color: var(--ink-muted);
+    font-size: 0.96rem;
+    max-width: 56ch;
+    margin: 0;
+  }
+
+  .stats {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    box-shadow: var(--shadow);
+  }
+
+  .stat strong {
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  section {
+    margin-bottom: 36px;
+  }
+
+  .section-label {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 14px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 20px 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-weight: 700;
+    font-size: 1.02rem;
+    margin: 0 0 4px;
+  }
+
+  .card-desc {
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  .snippet {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+  }
+
+  .snippet-text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.92rem;
+    color: var(--ink);
+    font-family: inherit;
+  }
+
+  .snippet-text.mono {
+    font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.85rem;
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.15s ease, opacity 0.15s ease;
+  }
+
+  .copy-btn:hover { opacity: 0.9; }
+  .copy-btn:active { transform: scale(0.97); }
+
+  .copy-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .copy-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .copy-btn.copied {
+    background: var(--ink);
+    color: var(--surface);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .copy-btn.copied {
+      background: var(--surface-alt);
+      color: var(--accent-ink);
+    }
+  }
+  :root[data-theme="dark"] .copy-btn.copied {
+    background: var(--surface-alt);
+    color: var(--accent-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .copy-btn { transition: none; }
+  }
+
+  footer {
+    color: var(--ink-muted);
+    font-size: 0.78rem;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 480px) {
+    .card-head { flex-direction: column; }
+    .copy-btn { align-self: flex-start; }
+  }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <span class="eyebrow">closed testing kit</span>
+    <h1>Anniv テスター募集キット</h1>
+    <p class="lede">クローズドテスターの公募で使う投稿文・返信テンプレート・リンクをまとめました。ボタン一つでコピーできます。グループは <strong>anniv_test</strong>（自前）と <strong>AndroidClosedJP</strong>（相互テストコミュニティ）の両方を運用します。</p>
+    <div class="stats">
+      <span class="stat">必要人数 <strong>12名以上</strong></span>
+      <span class="stat">公募目標 <strong>20名</strong></span>
+      <span class="stat">継続期間 <strong>14日間</strong></span>
+    </div>
+  </header>
+
+  <section>
+    <p class="section-label">Discord</p>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">相互テストコミュニティ投稿用</p>
+          <p class="card-desc">AndroidClosedJP 等のコミュニティに貼る募集文</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text">お世話になります。溝上 と申します。
+Androidクローズドテストにご協力いただけますと幸いです。相互テストも大歓迎です、よろしければあなたのアプリも教えてください🙏
+
+【アプリ名】
+Anniv（アニヴ）
+
+【アプリの説明】
+誕生日・記念日・試験・旅行までの「あと何日」をカウントダウンして通知するアプリ。
+テンプレートを選ぶだけでアイコン・繰り返し・通知がまとまってセットされ、数タップで登録できます。
+ホーム画面ウィジェットで残り日数がひと目。「付き合って◯日」のような経過日数カウントにも対応しています。
+
+【テストへの参加】
+・「AndroidClosedJP」グループ参加済みの方 → 下記からそのまま参加できます
+　https://play.google.com/store/apps/details?id=com.annivapp.anniv
+・未参加の方 → まず下記グループへ参加してください
+　https://groups.google.com/g/anniv_test
+
+14日間の継続インストールが要件のため、期間中はアンインストールせずに置いていただけると助かります。
+ご不明点は anniv_test@googlegroups.com までどうぞ。</p></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">攻略組用</p>
+          <p class="card-desc">クローズドテスト攻略組（AndroidClosedJP 参加前提）向けの短い募集文</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text">【アプリ名】
+Anniv（アニヴ）
+
+【アプリの説明】
+誕生日・記念日・試験・旅行までの「あと何日」をカウントダウンして通知するアプリ。
+テンプレートを選ぶだけでアイコン・繰り返し・通知がまとまってセットされ、数タップで登録できます。
+ホーム画面ウィジェットで残り日数がひと目。「付き合って◯日」のような経過日数カウントにも対応しています。
+
+【インストールURL】
+https://play.google.com/store/apps/details?id=com.annivapp.anniv
+※ Googleグループ「AndroidClosedJP」への参加が必要です
+
+記念日アプリの個人開発は初挑戦です。
+メインのカウントダウン・通知・ウィジェット部分が実装できたのでクローズドテストに入りました。
+
+相互テストも参加させていただきますので、お気軽にお声掛けください！</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-label">SNS投稿</p>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">X 告知文</p>
+          <p class="card-desc">募集を開始するときの投稿</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text">【Androidアプリ クローズドテスター募集】
+記念日・誕生日までの「あと何日」をカウントダウン通知するアプリ「Anniv」のテスターを募集します🙏
+相互テストも歓迎です！
+
+①グループ参加
+https://groups.google.com/g/anniv_test
+②承認後、Playからインストール
+https://play.google.com/store/apps/details?id=com.annivapp.anniv
+
+#個人開発 #Android #クローズドテスト</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-label">X リプライ</p>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">相互テストの持ちかけ</p>
+          <p class="card-desc">他の人の募集ポストへの返信用</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text">はじめまして！テスター協力させていただきます🙏
+もしよければ相互テストという形で、こちらのアプリもテストしていただけると嬉しいです！
+
+「Anniv」— 誕生日・記念日までの残り日数をカウントダウン通知するアプリです
+①グループ参加：https://groups.google.com/g/anniv_test
+②テスト参加：https://play.google.com/store/apps/details?id=com.annivapp.anniv
+
+よろしくお願いします！</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-label">返信テンプレート</p>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">リプ・DM返信</p>
+          <p class="card-desc">協力を申し出てくれた人への返信（相互テスト受け）</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text">ご協力ありがとうございます！相互テストも歓迎です、あなたのアプリのリンクも教えてください🙏
+
+こちらの手順でお願いします：
+① Googleグループへ参加（「AndroidClosedJP」参加済みなら不要）
+https://groups.google.com/g/anniv_test
+② 下記からテスト参加
+https://play.google.com/store/apps/details?id=com.annivapp.anniv
+
+ご不明点は anniv_test@googlegroups.com までどうぞ！</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-label">LINE</p>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">知り合い向け募集文</p>
+          <p class="card-desc">グループLINE等で送る、少し敬語混じりの依頼文</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text">皆さんにお願いがあります🙏
+個人開発で、誕生日や記念日までの残り日数をカウントダウン通知するアプリ（Anniv）を作っていて、Android版を公開するのにテスターが必要なんです。
+
+もしよかったらテスト協力してもらえないでしょうか？やることは簡単です。
+
+① まずこのグループに参加してください
+https://groups.google.com/g/anniv_test
+
+② 参加できたらこのリンクからインストールするだけです
+https://play.google.com/store/apps/details?id=com.annivapp.anniv
+
+一応14日間はアンインストールしないでもらえると助かります！実際に使わなくてもインストールしたままでOKです。
+何かあったらいつでも聞いてください、ありがとうございます😊</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-label">グループ内メッセージ</p>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">ようこそメッセージ</p>
+          <p class="card-desc">anniv_test グループ設定 → 一般 → ようこそメッセージ欄</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text">「Anniv」クローズドテスターグループへのご参加ありがとうございます！
+
+以下のリンクからテストにご参加ください：
+https://play.google.com/store/apps/details?id=com.annivapp.anniv
+※このグループのメンバーであることが確認され次第、上記リンクからテストに参加できるようになります（反映まで数分〜数時間かかることがあります）
+
+ご不明点や不具合の報告は、このグループ宛にメールでご連絡ください。
+相互テストをご希望の方は、そのメールにアプリのリンクを添えてご返信いただければ対応します。
+
+ご協力よろしくお願いいたします！</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-label">リンク・連絡先</p>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">anniv_test 参加ページ</p>
+          <p class="card-desc">自前グループ。一般公募の参加窓口</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text mono">https://groups.google.com/g/anniv_test</p></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">AndroidClosedJP 参加ページ</p>
+          <p class="card-desc">相互テストコミュニティの共有グループ</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text mono">https://groups.google.com/g/AndroidClosedJP</p></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">Play テスト参加 / インストール</p>
+          <p class="card-desc">グループ参加後にアプリを取得する入口</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text mono">https://play.google.com/store/apps/details?id=com.annivapp.anniv</p></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">Play opt-in リンク</p>
+          <p class="card-desc">テスター参加ページ（ウェブで参加）</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text mono">https://play.google.com/apps/testing/com.annivapp.anniv</p></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="card-title">グループメールアドレス</p>
+          <p class="card-desc">フィードバック・問い合わせ窓口</p>
+        </div>
+        <button class="copy-btn" onclick="copySnippet(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span class="btn-label">コピー</span>
+        </button>
+      </div>
+      <div class="snippet"><p class="snippet-text mono">anniv_test@googlegroups.com</p></div>
+    </div>
+  </section>
+
+  <footer>
+    「Anniv」（com.annivapp.anniv）クローズドテスト運用メモ / グループ: anniv_test + AndroidClosedJP
+  </footer>
+</div>
+
+<script>
+  function copySnippet(button) {
+    var card = button.closest('.card');
+    var source = card.querySelector('.snippet-text');
+    var text = source.innerText;
+    var label = button.querySelector('.btn-label');
+
+    function finish() {
+      button.classList.add('copied');
+      label.textContent = 'コピーしました';
+      clearTimeout(button._resetTimer);
+      button._resetTimer = setTimeout(function () {
+        button.classList.remove('copied');
+        label.textContent = 'コピー';
+      }, 1600);
+    }
+
+    function fallbackCopy() {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        finish();
+      } catch (e) {}
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(finish, fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }
+</script>
