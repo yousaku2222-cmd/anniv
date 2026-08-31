@@ -8,11 +8,13 @@
 ## 1. AdMob（広告）
 
 1. https://admob.google.com でアカウント作成 → アプリを2つ登録（Android / iOS）
-2. それぞれに **バナー広告ユニット**を作成
+2. それぞれに **バナー広告ユニット** と **リワード広告ユニット** を作成
+   （リワード＝アイコン変更の解放に使用。`_IconPickerSheet`）
 3. 取得した ID を反映:
    | 場所 | 何を入れるか |
    |---|---|
    | `lib/features/ads/ad_ids.dart` `_androidBanner` / `_iosBanner` | バナーユニットID |
+   | `lib/features/ads/ad_ids.dart` `_androidRewarded` / `_iosRewarded` | リワードユニットID（空ならGoogleテスト） |
    | `lib/features/ads/ad_ids.dart` `useTestAds` | `false` |
    | `android/app/src/main/AndroidManifest.xml` `com.google.android.gms.ads.APPLICATION_ID` | Android アプリID（`ca-app-pub-…~…`） |
    | `ios/Runner/Info.plist` `GADApplicationIdentifier` | iOS アプリID |
