@@ -82,24 +82,29 @@ Apple ID: yousaku2222@gmail.com（有料 Apple Developer Program）
 
 ## 6. Xcode でアーカイブ＆アップロード
 
-Mac（`~/line_talk_saver/anniv` の作業コピー）で:
+> ⚠ `flutter build ipa --release` は現状 **CodeSign failed** で失敗する。
+> 手元には "Apple **Development**" 証明書しかなく、App Store 配布には
+> "Apple **Distribution**" 証明書＋App Store プロビジョニングプロファイルが要る。
+> これらは **Xcode の Archive フロー**が（アカウントにサインインしていれば）
+> 自動生成するので、下記の GUI 手順で行う。
 
-```bash
-flutter build ipa --release
-```
+事前: **Xcode ▸ Settings ▸ Accounts** に Apple ID（yousaku2222@gmail.com）を追加。
 
-→ `build/ios/ipa/anniv.ipa` が出る。**Transporter** アプリ、または `xcrun altool` /
-Xcode Organizer からアップロード。
-
-うまくいかない場合は Xcode で:
 1. `open ios/Runner.xcworkspace`
-2. スキーム **Runner** / 宛先 **Any iOS Device (arm64)**
-3. **Product ▸ Archive**
-4. Organizer → **Distribute App ▸ App Store Connect ▸ Upload**
-   - AnnivWidgetExtension も自動で含まれる
-   - "Automatically manage signing" 有効なら証明書/プロファイルは自動
+2. TARGETS ▸ Runner / AnnivWidgetExtension の Signing & Capabilities で
+   **Automatically manage signing** ✔ / Team = 自分のチーム
+3. スキーム **Runner** / 宛先 **Any iOS Device (arm64)**（シミュレータ不可）
+4. **Product ▸ Archive**
+   - 初回は「Apple Distribution 証明書を作成しますか？」に許可 → 自動作成
+5. Organizer が開く → 対象アーカイブを選択 ▸ **Distribute App**
+   ▸ **App Store Connect** ▸ **Upload**
+   - AnnivWidgetExtension も自動で同梱・署名される
+   - 「Upload your app's symbols」「Manage Version and Build Number」はデフォルトでOK
+6. アップロード完了後、App Store Connect の「TestFlight」/「App Store ▸ ビルド」に
+   反映（処理に数分〜30分、完了メールが来る）
 
-アップロード後、App Store Connect の「ビルド」欄に反映（処理に数分〜30分）。
+（CLI で通したい場合は、上記 Archive を一度 GUI で通して Distribution 証明書と
+プロファイルを作った後、`flutter build ipa --export-method app-store` が使える）
 
 ## 7. 審査へ提出
 
