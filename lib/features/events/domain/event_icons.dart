@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// A named set of icons for the picker in the "見た目" step.
+/// Which visual style the icon picker is showing.
+enum IconStyle { filled, outline }
+
+/// A named set of icons for one section of the picker.
 @immutable
 class EventIconGroup {
   const EventIconGroup(this.label, this.icons);
@@ -11,13 +14,14 @@ class EventIconGroup {
 /// Curated icons a user can pick to override an event's template icon
 /// ([Event.iconCodePoint]). Every entry is a real `Icons.*` const, so the
 /// release build's icon tree-shaker keeps these glyphs.
+///
+/// [filled] ("シンプル") and [outline] ("ライン") are independent sets.
 class EventIcons {
   const EventIcons._();
 
-  static const List<EventIconGroup> groups = [
+  static const List<EventIconGroup> filled = [
     EventIconGroup('記念日・お祝い', [
       Icons.favorite,
-      Icons.favorite_border,
       Icons.cake,
       Icons.celebration,
       Icons.card_giftcard,
@@ -27,9 +31,9 @@ class EventIcons {
       Icons.diamond,
       Icons.auto_awesome,
       Icons.star,
-      Icons.star_border,
     ]),
     EventIconGroup('人・くらし', [
+      Icons.favorite_border,
       Icons.person,
       Icons.family_restroom,
       Icons.child_friendly,
@@ -39,9 +43,6 @@ class EventIcons {
       Icons.school,
       Icons.work,
       Icons.savings,
-      Icons.elderly,
-      Icons.groups,
-      Icons.volunteer_activism,
     ]),
     EventIconGroup('おでかけ', [
       Icons.flight_takeoff,
@@ -54,8 +55,6 @@ class EventIcons {
       Icons.hotel,
       Icons.restaurant,
       Icons.local_cafe,
-      Icons.map,
-      Icons.festival,
     ]),
     EventIconGroup('趣味・推し活', [
       Icons.music_note,
@@ -67,8 +66,6 @@ class EventIcons {
       Icons.camera_alt,
       Icons.palette,
       Icons.sports_soccer,
-      Icons.sports_baseball,
-      Icons.fitness_center,
       Icons.menu_book,
     ]),
     EventIconGroup('季節・自然', [
@@ -82,8 +79,6 @@ class EventIcons {
       Icons.cloud,
       Icons.thunderstorm,
       Icons.spa,
-      Icons.forest,
-      Icons.filter_vintage,
     ]),
     EventIconGroup('しるし', [
       Icons.check_circle,
@@ -92,18 +87,95 @@ class EventIcons {
       Icons.bookmark,
       Icons.alarm,
       Icons.event,
-      Icons.schedule,
       Icons.priority_high,
       Icons.warning_amber,
       Icons.info,
-      Icons.hourglass_bottom,
       Icons.timer,
     ]),
   ];
 
+  static const List<EventIconGroup> outline = [
+    EventIconGroup('記念日・お祝い', [
+      Icons.favorite_border,
+      Icons.cake_outlined,
+      Icons.celebration_outlined,
+      Icons.local_florist_outlined,
+      Icons.emoji_events_outlined,
+      Icons.diamond_outlined,
+      Icons.auto_awesome_outlined,
+      Icons.star_border,
+      Icons.stars_outlined,
+      Icons.workspace_premium_outlined,
+    ]),
+    EventIconGroup('人・くらし', [
+      Icons.person_outline,
+      Icons.groups_outlined,
+      Icons.child_friendly_outlined,
+      Icons.pets_outlined,
+      Icons.home_outlined,
+      Icons.school_outlined,
+      Icons.work_outline,
+      Icons.savings_outlined,
+      Icons.volunteer_activism_outlined,
+      Icons.handshake_outlined,
+    ]),
+    EventIconGroup('おでかけ', [
+      Icons.flight,
+      Icons.train_outlined,
+      Icons.directions_car_outlined,
+      Icons.directions_bus_outlined,
+      Icons.directions_boat_outlined,
+      Icons.beach_access_outlined,
+      Icons.hotel_outlined,
+      Icons.restaurant_outlined,
+      Icons.local_cafe_outlined,
+      Icons.map_outlined,
+    ]),
+    EventIconGroup('趣味・推し活', [
+      Icons.music_note_outlined,
+      Icons.mic_none,
+      Icons.headphones_outlined,
+      Icons.sports_esports_outlined,
+      Icons.movie_outlined,
+      Icons.camera_alt_outlined,
+      Icons.palette_outlined,
+      Icons.sports_soccer_outlined,
+      Icons.menu_book_outlined,
+      Icons.brush_outlined,
+    ]),
+    EventIconGroup('季節・自然', [
+      Icons.wb_sunny_outlined,
+      Icons.nightlight_outlined,
+      Icons.local_fire_department_outlined,
+      Icons.park_outlined,
+      Icons.water_drop_outlined,
+      Icons.umbrella_outlined,
+      Icons.cloud_outlined,
+      Icons.thunderstorm_outlined,
+      Icons.spa_outlined,
+      Icons.eco_outlined,
+    ]),
+    EventIconGroup('しるし', [
+      Icons.check_circle_outline,
+      Icons.flag_outlined,
+      Icons.push_pin_outlined,
+      Icons.bookmark_border,
+      Icons.access_alarm,
+      Icons.event_outlined,
+      Icons.error_outline,
+      Icons.info_outline,
+      Icons.hourglass_empty,
+      Icons.timer_outlined,
+    ]),
+  ];
+
+  static List<EventIconGroup> groupsFor(IconStyle style) =>
+      style == IconStyle.filled ? filled : outline;
+
   static final Map<int, IconData> _byCode = {
-    for (final g in groups)
-      for (final i in g.icons) i.codePoint: i,
+    for (final list in [filled, outline])
+      for (final g in list)
+        for (final i in g.icons) i.codePoint: i,
   };
 
   /// The kept `Icons.*` const for a stored codepoint, or null if it isn't one

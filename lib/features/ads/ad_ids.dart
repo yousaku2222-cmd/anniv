@@ -18,19 +18,40 @@ class AdIds {
   /// console (Settings > Test devices). Add an id here only for a stable build.
   static const List<String> testDeviceIds = [];
 
-  // Google's always-available test banner units.
+  // Google's always-available test units.
   static const String _androidTestBanner =
       'ca-app-pub-3940256099942544/6300978111';
   static const String _iosTestBanner =
       'ca-app-pub-3940256099942544/2934735716';
+  static const String _androidTestRewarded =
+      'ca-app-pub-3940256099942544/5224354917';
+  static const String _iosTestRewarded =
+      'ca-app-pub-3940256099942544/1712485313';
 
   // Real AdMob banner units (app: Anniv).
   static const String _androidBanner =
       'ca-app-pub-3818461038959537/3625912019';
   static const String _iosBanner = 'ca-app-pub-3818461038959537/8690913737';
 
+  // Real AdMob rewarded units (app: Anniv). Create them in the AdMob console
+  // (アプリ ▸ 広告ユニット ▸ リワード) and paste the ids here. While empty the
+  // Google test rewarded unit is used even in release.
+  static const String _androidRewarded = '';
+  static const String _iosRewarded = '';
+
   static String get bannerUnitId {
     if (Platform.isIOS) return useTestAds ? _iosTestBanner : _iosBanner;
     return useTestAds ? _androidTestBanner : _androidBanner;
+  }
+
+  static String get rewardedUnitId {
+    if (Platform.isIOS) {
+      return (useTestAds || _iosRewarded.isEmpty)
+          ? _iosTestRewarded
+          : _iosRewarded;
+    }
+    return (useTestAds || _androidRewarded.isEmpty)
+        ? _androidTestRewarded
+        : _androidRewarded;
   }
 }

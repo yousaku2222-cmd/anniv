@@ -26,6 +26,7 @@ class AppSettings {
     this.displayFormat = DisplayFormat.daysLeft,
     this.themeMode = AppThemeMode.system,
     this.adRemoved = false,
+    this.iconChangeUnlocked = false,
     this.onboardingDone = false,
   });
 
@@ -36,6 +37,10 @@ class AppSettings {
 
   /// True once the "remove ads" purchase is verified.
   final bool adRemoved;
+
+  /// True once the user watched a rewarded ad to unlock custom event icons.
+  final bool iconChangeUnlocked;
+
   final bool onboardingDone;
 
   static const AppSettings defaults = AppSettings();
@@ -46,6 +51,7 @@ class AppSettings {
     DisplayFormat? displayFormat,
     AppThemeMode? themeMode,
     bool? adRemoved,
+    bool? iconChangeUnlocked,
     bool? onboardingDone,
   }) {
     return AppSettings(
@@ -54,6 +60,7 @@ class AppSettings {
       displayFormat: displayFormat ?? this.displayFormat,
       themeMode: themeMode ?? this.themeMode,
       adRemoved: adRemoved ?? this.adRemoved,
+      iconChangeUnlocked: iconChangeUnlocked ?? this.iconChangeUnlocked,
       onboardingDone: onboardingDone ?? this.onboardingDone,
     );
   }
@@ -64,6 +71,7 @@ class AppSettings {
         'displayFormat': displayFormat.name,
         'themeMode': themeMode.name,
         'adRemoved': adRemoved,
+        'iconChangeUnlocked': iconChangeUnlocked,
         'onboardingDone': onboardingDone,
       };
 
@@ -77,6 +85,7 @@ class AppSettings {
         themeMode: _enumByName(AppThemeMode.values,
             json['themeMode'] as String?, AppThemeMode.system),
         adRemoved: json['adRemoved'] as bool? ?? false,
+        iconChangeUnlocked: json['iconChangeUnlocked'] as bool? ?? false,
         onboardingDone: json['onboardingDone'] as bool? ?? false,
       );
 
@@ -88,9 +97,10 @@ class AppSettings {
       other.displayFormat == displayFormat &&
       other.themeMode == themeMode &&
       other.adRemoved == adRemoved &&
+      other.iconChangeUnlocked == iconChangeUnlocked &&
       other.onboardingDone == onboardingDone;
 
   @override
   int get hashCode => Object.hash(defaultNotifyTime, weekStart, displayFormat,
-      themeMode, adRemoved, onboardingDone);
+      themeMode, adRemoved, iconChangeUnlocked, onboardingDone);
 }

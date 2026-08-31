@@ -8,6 +8,7 @@ import 'app.dart';
 import 'core/providers/shared_preferences_provider.dart';
 import 'features/ads/application/ad_providers.dart';
 import 'features/ads/data/ad_service.dart';
+import 'features/ads/data/rewarded_ad_service.dart';
 import 'features/notifications/application/notification_providers.dart';
 import 'features/notifications/data/notification_service.dart';
 import 'features/widget/application/home_widget_providers.dart';
@@ -34,13 +35,17 @@ Future<void> main() async {
     debugPrint('Anniv: notifications unavailable, running without them: $e');
   }
 
+  final adService = GoogleAdService();
+
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         notificationServiceProvider.overrideWithValue(notifications),
         homeWidgetServiceProvider.overrideWithValue(const AppHomeWidgetService()),
-        adServiceProvider.overrideWithValue(GoogleAdService()),
+        adServiceProvider.overrideWithValue(adService),
+        rewardedAdServiceProvider
+            .overrideWithValue(GoogleRewardedAdService(adService)),
       ],
       child: const AnnivApp(),
     ),
