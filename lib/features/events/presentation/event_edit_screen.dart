@@ -265,7 +265,8 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
         padding: const EdgeInsets.all(6),
         child: CalendarDatePicker(
           initialDate: _draft.targetDate,
-          firstDate: DateTime(2000),
+          // 1900 so past birthdays / long-ago anniversaries are selectable.
+          firstDate: DateTime(1900),
           lastDate: DateTime(2100),
           onDateChanged: (d) => _set(
               _draft.copyWith(targetDate: DateTime(d.year, d.month, d.day))),
