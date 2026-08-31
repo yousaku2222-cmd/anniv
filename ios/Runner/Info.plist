@@ -4,6 +4,10 @@
 	<dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
+		<!-- No non-exempt encryption (only OS-standard HTTPS) — skips the
+		     export-compliance question on every App Store Connect upload. -->
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 		<!-- AdMob App ID (app: Anniv, publisher pub-3818461038959537). -->
 		<key>GADApplicationIdentifier</key>
 		<string>ca-app-pub-3818461038959537~2504402034</string>
