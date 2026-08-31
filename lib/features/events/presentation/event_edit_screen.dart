@@ -36,6 +36,15 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
   final _pageController = PageController();
   int _step = 0;
   bool _initialised = false;
+  bool _busy = false;
+
+  /// The 5th and every later new event costs one rewarded-ad view.
+  static const int _freeEventQuota = 4;
+
+  bool get _needsAdToSave =>
+      widget.isCreating &&
+      ref.read(adsEnabledProvider) &&
+      ref.read(eventsProvider).length >= _freeEventQuota;
 
   static const _stepCount = 5;
 
@@ -54,6 +63,8 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
           ref.read(eventsProvider.notifier).draftFromTemplate(EventType.custom);
     }
     _titleController.text = _draft.title;
+
+    if (_needsAdToSave) ref.read(rewardedAdServiceProvider).preload();
   }
 
   @override
@@ -78,6 +89,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
   }
 
   Future<void> _save() async {
+    if (_busy) return;
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       _goto(0);
@@ -85,6 +97,22 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
           .showSnackBar(const SnackBar(content: Text('タイトルを入力してください')));
       return;
     }
+
+    if (_needsAdToSave) {
+      setState(() => _busy = true);
+      final earned = await ref.read(rewardedAdServiceProvider).showForReward();
+      if (!mounted) return;
+      setState(() => _busy = false);
+      if (!earned) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('広告を再生できませんでした。もう一度お試しください。'),
+          ),
+        );
+        return;
+      }
+    }
+
     if (_draft.notifications.isNotEmpty) {
       await ref.read(notificationServiceProvider).requestPermission();
     }
@@ -174,7 +202,10 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
             _WizardBar(
               onCancel: () => context.pop(),
               onBack: _step == 0 ? null : () => _goto(_step - 1),
-              nextLabel: isLast ? '保存' : '次へ',
+              nextLabel: isLast
+                  ? (_needsAdToSave ? '広告を見て保存' : '保存')
+                  : '次へ',
+              busy: _busy,
               onNext: isLast ? _save : () => _goto(_step + 1),
             ),
           ],
@@ -393,6 +424,28 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
       ...EventType.values.map(AnnivEventColors.of),
     ];
     return [
+      if (_needsAdToSave) ...[
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: a.brandSoft,
+            borderRadius: AppRadius.rowBr,
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.play_circle_outline, size: 18, color: a.brand),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '5個目以降の登録には、保存時に広告の視聴が必要です',
+                  style: TextStyle(fontSize: 12, color: a.brand),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+      ],
       Container(
         height: 150,
         width: double.infinity,
@@ -844,12 +897,14 @@ class _WizardBar extends StatelessWidget {
     required this.onBack,
     required this.nextLabel,
     required this.onNext,
+    this.busy = false,
   });
 
   final VoidCallback onCancel;
   final VoidCallback? onBack;
   final String nextLabel;
   final VoidCallback onNext;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -864,13 +919,23 @@ class _WizardBar extends StatelessWidget {
       child: Row(
         children: [
           TextButton(
-            onPressed: onBack ?? onCancel,
+            onPressed: busy ? null : (onBack ?? onCancel),
             child: Text(onBack == null ? 'キャンセル' : '戻る'),
           ),
           const Spacer(),
           SizedBox(
-            width: 132,
-            child: FilledButton(onPressed: onNext, child: Text(nextLabel)),
+            width: 152,
+            child: FilledButton(
+              onPressed: busy ? null : onNext,
+              child: busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : Text(nextLabel),
+            ),
           ),
         ],
       ),
