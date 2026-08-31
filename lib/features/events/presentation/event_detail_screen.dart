@@ -6,6 +6,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/time/clock.dart';
+import '../../ads/presentation/banner_ad_widget.dart';
 import '../../groups/application/group_providers.dart';
 import '../application/event_providers.dart';
 import '../domain/countdown.dart';
@@ -37,6 +38,7 @@ class EventDetailScreen extends ConsumerWidget {
     final groupName = ref.watch(groupNameProvider(event.groupId));
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       body: ListView(
         padding: EdgeInsets.zero,
         children: [

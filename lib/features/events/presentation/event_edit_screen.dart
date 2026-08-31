@@ -6,6 +6,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../ads/application/ad_providers.dart';
+import '../../ads/presentation/banner_ad_widget.dart';
 import '../../groups/application/group_providers.dart';
 import '../../notifications/application/notification_providers.dart';
 import '../../settings/application/settings_providers.dart';
@@ -111,6 +112,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
     final a = context.anniv;
     final isLast = _step == _stepCount - 1;
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       body: SafeArea(
         child: Column(
           children: [
@@ -185,6 +187,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
 
   Widget _buildEditor(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: const Text('編集'),
         actions: [

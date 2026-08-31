@@ -6,6 +6,7 @@ import '../../../core/app_info.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/time/day_time.dart';
+import '../../ads/presentation/banner_ad_widget.dart';
 import '../../backup/application/backup_controller.dart';
 import '../../backup/domain/backup_codec.dart';
 import '../../groups/application/group_providers.dart';
@@ -22,6 +23,7 @@ class SettingsScreen extends ConsumerWidget {
     final notifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text('設定',
             style: TextStyle(

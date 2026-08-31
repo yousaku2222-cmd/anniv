@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../../../core/theme/app_tokens.dart';
 import '../ad_ids.dart';
 import '../application/ad_providers.dart';
 
@@ -73,6 +74,22 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
         height: _ad!.size.height.toDouble(),
         child: AdWidget(ad: _ad!),
       ),
+    );
+  }
+}
+
+/// Drop-in bottom slot for a screen's [Scaffold.bottomNavigationBar] (or the
+/// foot of a Column): centres a [BannerAdWidget] on the app background, and
+/// collapses to nothing when there's no ad to show.
+class BannerAdSlot extends StatelessWidget {
+  const BannerAdSlot({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: context.anniv.bg,
+      alignment: Alignment.center,
+      child: const BannerAdWidget(),
     );
   }
 }

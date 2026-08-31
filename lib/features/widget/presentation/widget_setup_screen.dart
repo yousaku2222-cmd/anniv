@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/time/clock.dart';
+import '../../ads/presentation/banner_ad_widget.dart';
 import '../../events/application/event_providers.dart';
 import '../../events/domain/countdown.dart';
 import '../../events/domain/event.dart';
@@ -30,6 +31,7 @@ class _WidgetSetupScreenState extends ConsumerState<WidgetSetupScreen> {
     final rows = events.take(_medium ? 3 : 1).toList();
 
     return Scaffold(
+      bottomNavigationBar: const BannerAdSlot(),
       appBar: AppBar(
         title: Text('ホーム画面ウィジェット',
             style: TextStyle(
