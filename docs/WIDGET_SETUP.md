@@ -33,7 +33,11 @@ flutter run                     # 端末にインストール
 
 未対応（v2 以降）: ダークテーマ対応の背景、複数サイズ、タップで該当イベント詳細へ。
 
-## iOS（Xcode 作業。Mac 必須）
+## iOS（✅ 実装済み・Simulator 動作確認済み 2026-08-31）
+
+Xcode で Widget Extension ターゲットを追加し、iOS Simulator（iPhone 17 Pro /
+iOS 26.5）で小ウィジェットの描画（`7 日 / 推しのライブ / 9月7日 まで`、朱色配色）と
+App Group 経由のデータ連携を確認済み（コミット `2df2db7`）。以下は再現手順・注意点。
 
 App Group id: **`group.com.annivapp.anniv`**（`AppHomeWidgetService.appGroupId` /
 `ios/AnnivWidget/AnnivWidget.swift` / 両ターゲットの Capability で一致させる）。
@@ -74,11 +78,14 @@ App Group id: **`group.com.annivapp.anniv`**（`AppHomeWidgetService.appGroupId`
 5. `AnnivWidget` ターゲットの **Deployment Target** を Runner と揃える（iOS 14 以上）
 6. `AnnivWidget` ターゲットの Info.plist を `ios/AnnivWidget/Info.plist` に向ける
    （Build Settings ▸ *Info.plist File*）
-7. `flutter build ios --config-only` → `pod install`（`ios/` で）
-8. 実機 or シミュレータで Runner を Run → ホーム画面長押し ▸ **＋** ▸ 「Anniv」▸
-   「次の記念日」を配置
-9. アプリで記念日を追加/編集 → ウィジェットが更新されることを確認
-   （iOS はタイムライン更新が OS 任せ。すぐ反映されない場合はアプリを再度開く）
+7. `flutter build ios --config-only`（Flutter 3.47 は Swift Package Manager 方式。
+   `ios/Podfile` は生成されず `pod install` は不要）
+8. **ビルドフェーズのサイクル解消**（追加すると必ず出る）:
+   Runner ▸ Build Phases ▸ **「Run Script」と「Thin Binary」の
+   "Based on dependency analysis" のチェックを外す**
+9. Runner を Run → ホーム画面長押し ▸ **＋** ▸ 「Anniv」▸ 「次の記念日」を配置
+10. アプリで記念日を追加/編集 → ウィジェットが更新されることを確認
+    （iOS はタイムライン更新が OS 任せ。すぐ反映されない場合はアプリを再度開く）
 
 参考: `home_widget` iOS ガイド https://pub.dev/packages/home_widget#-ios
 
@@ -86,5 +93,12 @@ App Group id: **`group.com.annivapp.anniv`**（`AppHomeWidgetService.appGroupId`
 
 - `AnnivWidget.swift` の `appGroupId` 定数と Capability の group id を**必ず一致**させる
 - 無料の個人 Apple ID では App Group を作れないことがある（有料の Developer Program 必須）
-- App Store 提出時は AnnivWidget ターゲットにもバージョン/ビルド番号が要る
-  （Info.plist で `$(FLUTTER_BUILD_NAME)` / `$(FLUTTER_BUILD_NUMBER)` を参照済み）
+- **バージョン固定**: AnnivWidgetExtension ターゲットは `CURRENT_PROJECT_VERSION = 2` /
+  `MARKETING_VERSION = 1.0.0` を直書き、`Info.plist` は `$(CURRENT_PROJECT_VERSION)` /
+  `$(MARKETING_VERSION)` を参照（`$(FLUTTER_BUILD_*)` は Runner の xcconfig 経由でしか
+  効かず拡張では null になるため）。**`pubspec.yaml` の version を上げたら
+  project.pbxproj の AnnivWidgetExtension 側の値も手動で合わせること**（不一致だと
+  App Store 提出時に弾かれる）
+- Xcode が `RunnerDebug.entitlements` / `AnnivWidgetExtensionDebug.entitlements` を
+  自動生成する。事前用意した `Runner/Runner.entitlements` /
+  `AnnivWidget/AnnivWidget.entitlements` と内容は同じ（App Group 1件）
