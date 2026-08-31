@@ -6,6 +6,7 @@ import '../../../core/app_info.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/time/day_time.dart';
+import '../../ads/application/ad_providers.dart';
 import '../../ads/presentation/banner_ad_widget.dart';
 import '../../backup/application/backup_controller.dart';
 import '../../backup/domain/backup_codec.dart';
@@ -405,13 +406,48 @@ class _RemoveAdsRow extends ConsumerWidget {
   }
 }
 
-class _GroupManager extends ConsumerWidget {
+class _GroupManager extends ConsumerStatefulWidget {
   const _GroupManager();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_GroupManager> createState() => _GroupManagerState();
+}
+
+class _GroupManagerState extends ConsumerState<_GroupManager> {
+  bool _busy = false;
+
+  Future<void> _addGroup() async {
+    if (_busy) return;
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Every group-add costs one rewarded-ad view (unless ads are removed).
+    if (ref.read(adsEnabledProvider)) {
+      setState(() => _busy = true);
+      final earned = await ref.read(rewardedAdServiceProvider).showForReward();
+      if (!mounted) return;
+      setState(() => _busy = false);
+      if (!earned) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('広告を再生できませんでした。もう一度お試しください。'),
+          ),
+        );
+        return;
+      }
+    }
+
+    if (!mounted) return;
+    final name = await _promptName(context);
+    if (name != null && name.trim().isNotEmpty) {
+      await ref.read(groupsProvider.notifier).add(name.trim());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final a = context.anniv;
     final groups = ref.watch(groupsProvider);
+    final adGated = ref.watch(adsEnabledProvider);
     return Column(
       children: [
         for (final g in groups)
@@ -436,12 +472,7 @@ class _GroupManager extends ConsumerWidget {
             ),
           ),
         InkWell(
-          onTap: () async {
-            final name = await _promptName(context);
-            if (name != null && name.trim().isNotEmpty) {
-              await ref.read(groupsProvider.notifier).add(name.trim());
-            }
-          },
+          onTap: _busy ? null : _addGroup,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Row(
@@ -451,6 +482,19 @@ class _GroupManager extends ConsumerWidget {
                 Text('グループを追加',
                     style: TextStyle(
                         color: a.brand, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                if (_busy)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else if (adGated) ...[
+                  Icon(Icons.play_circle_outline, size: 14, color: a.sub),
+                  const SizedBox(width: 4),
+                  Text('広告を見る',
+                      style: TextStyle(fontSize: 11, color: a.sub)),
+                ],
               ],
             ),
           ),
