@@ -11,6 +11,7 @@ import '../../settings/application/settings_providers.dart';
 import '../application/event_providers.dart';
 import '../domain/countdown.dart';
 import '../domain/event.dart';
+import '../domain/event_icons.dart';
 import '../domain/event_templates.dart';
 import 'event_presentation.dart';
 
@@ -416,6 +417,8 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
                 Text(label.unit,
                     style: const TextStyle(
                         color: Colors.white, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                Icon(_draft.displayIcon, color: Colors.white, size: 26),
               ],
             ),
             const SizedBox(height: 6),
@@ -467,6 +470,42 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
         ],
       ),
       const SizedBox(height: 16),
+      Text('アイコン', style: TextStyle(fontSize: 12.5, color: a.sub)),
+      const SizedBox(height: 8),
+      GestureDetector(
+        onTap: _pickIcon,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: a.surface,
+            borderRadius: AppRadius.rowBr,
+            border: Border.all(color: a.line),
+          ),
+          child: Row(
+            children: [
+              AnnivIconChip(
+                  icon: _draft.displayIcon, color: previewColor, size: 40),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _draft.iconCodePoint == null
+                      ? 'テンプレートのアイコン'
+                      : 'カスタムアイコン',
+                  style: TextStyle(color: a.ink, fontWeight: FontWeight.w700),
+                ),
+              ),
+              if (_draft.iconCodePoint != null)
+                TextButton(
+                  onPressed: () =>
+                      _set(_draft.copyWith(iconCodePoint: () => null)),
+                  child: const Text('リセット'),
+                ),
+              Icon(Icons.chevron_right_rounded, color: a.faint),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 16),
       const _ToggleRow(
         icon: Icons.image_outlined,
         title: '背景写真',
@@ -491,6 +530,149 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
           targetDate: DateTime(date.year, date.month, date.day))),
       child: AnnivPill(label,
           tone: selected ? AnnivPillTone.brand : AnnivPillTone.neutral),
+    );
+  }
+
+  Future<void> _pickIcon() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.anniv.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => _IconPickerSheet(
+        color: _draft.displayColor,
+        selected: _draft.iconCodePoint,
+        onSelected: (cp) {
+          _set(_draft.copyWith(iconCodePoint: () => cp));
+          Navigator.pop(ctx);
+        },
+      ),
+    );
+  }
+}
+
+class _IconPickerSheet extends StatelessWidget {
+  const _IconPickerSheet({
+    required this.color,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final Color color;
+  final int? selected;
+
+  /// null = "back to template icon".
+  final ValueChanged<int?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = context.anniv;
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.72,
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: a.line,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
+              child: Row(
+                children: [
+                  Text('アイコン',
+                      style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          color: a.ink)),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => onSelected(null),
+                    child: const Text('テンプレートに戻す'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                children: [
+                  for (final group in EventIcons.groups) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 10),
+                      child: Text(
+                        group.label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: a.sub,
+                        ),
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        for (final icon in group.icons)
+                          _IconCell(
+                            icon: icon,
+                            color: color,
+                            selected: icon.codePoint == selected,
+                            onTap: () => onSelected(icon.codePoint),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IconCell extends StatelessWidget {
+  const _IconCell({
+    required this.icon,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = context.anniv;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.16) : a.chipBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? color : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Icon(icon, size: 24, color: selected ? color : a.ink),
+      ),
     );
   }
 }

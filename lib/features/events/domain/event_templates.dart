@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'event.dart';
+import 'event_icons.dart';
 
 /// A starting point for a new event: picking one pre-fills the icon, colour,
 /// count mode, repeat rule and notification set so creation is a few taps.
@@ -136,9 +137,11 @@ class AnnivEventColors {
 extension EventVisuals on Event {
   EventTemplate get template => EventTemplate.forType(type);
 
-  // Custom per-event icons (iconCodePoint) aren't selectable in the UI yet;
-  // until then the template icon is authoritative.
-  IconData get displayIcon => template.icon;
+  /// A user-picked icon ([iconCodePoint]) wins over the template icon. Unknown
+  /// codepoints (e.g. from an older backup) fall back to the template.
+  IconData get displayIcon => iconCodePoint == null
+      ? template.icon
+      : (EventIcons.byCodePoint(iconCodePoint!) ?? template.icon);
 
   Color get displayColor =>
       colorValue != null ? Color(colorValue!) : template.color;
