@@ -81,15 +81,22 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
 /// Drop-in bottom slot for a screen's [Scaffold.bottomNavigationBar] (or the
 /// foot of a Column): centres a [BannerAdWidget] on the app background, and
 /// collapses to nothing when there's no ad to show.
+///
+/// [Align] with `heightFactor: 1` shrink-wraps to the banner's height, so this
+/// is safe even when the parent gives it an unbounded height (which
+/// `bottomNavigationBar` can).
 class BannerAdSlot extends StatelessWidget {
   const BannerAdSlot({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ColoredBox(
       color: context.anniv.bg,
-      alignment: Alignment.center,
-      child: const BannerAdWidget(),
+      child: const Align(
+        alignment: Alignment.bottomCenter,
+        heightFactor: 1,
+        child: BannerAdWidget(),
+      ),
     );
   }
 }
