@@ -471,7 +471,18 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
         ],
       ),
       const SizedBox(height: 16),
-      Text('アイコン', style: TextStyle(fontSize: 12.5, color: a.sub)),
+      Row(
+        children: [
+          Text('アイコン', style: TextStyle(fontSize: 12.5, color: a.sub)),
+          if (!ref.watch(iconChangeUnlockedProvider)) ...[
+            const SizedBox(width: 6),
+            Icon(Icons.lock, size: 12, color: a.brand),
+            const SizedBox(width: 2),
+            Text('広告で解放',
+                style: TextStyle(fontSize: 11, color: a.brand)),
+          ],
+        ],
+      ),
       const SizedBox(height: 8),
       GestureDetector(
         onTap: _pickIcon,
@@ -709,6 +720,7 @@ class _IconPickerSheetState extends ConsumerState<_IconPickerSheet> {
                                 icon: icon,
                                 color: widget.color,
                                 selected: icon.codePoint == widget.selected,
+                                locked: !unlocked,
                                 onTap: () => _onIconTap(icon.codePoint),
                               ),
                           ],
@@ -740,11 +752,13 @@ class _IconCell extends StatelessWidget {
     required this.color,
     required this.selected,
     required this.onTap,
+    this.locked = false,
   });
 
   final IconData icon;
   final Color color;
   final bool selected;
+  final bool locked;
   final VoidCallback onTap;
 
   @override
@@ -755,6 +769,7 @@ class _IconCell extends StatelessWidget {
       child: Container(
         width: 52,
         height: 52,
+        clipBehavior: Clip.none,
         decoration: BoxDecoration(
           color: selected ? color.withValues(alpha: 0.16) : a.chipBg,
           borderRadius: BorderRadius.circular(14),
@@ -763,7 +778,34 @@ class _IconCell extends StatelessWidget {
             width: 2,
           ),
         ),
-        child: Icon(icon, size: 24, color: selected ? color : a.ink),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: selected
+                  ? color
+                  : (locked ? a.ink.withValues(alpha: 0.45) : a.ink),
+            ),
+            if (locked)
+              Positioned(
+                right: -4,
+                bottom: -4,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: a.brand,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: a.surface, width: 1.5),
+                  ),
+                  child: const Icon(Icons.lock, size: 10, color: Colors.white),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
