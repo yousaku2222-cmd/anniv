@@ -120,6 +120,15 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
     if (mounted) context.pop();
   }
 
+  void _next() {
+    if (_step == 0 && _titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('タイトルを入力してください')));
+      return;
+    }
+    _goto(_step + 1);
+  }
+
   void _goto(int step) {
     setState(() => _step = step.clamp(0, _stepCount - 1));
     _pageController.animateToPage(
@@ -206,7 +215,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
                   ? (_needsAdToSave ? '広告を見て保存' : '保存')
                   : '次へ',
               busy: _busy,
-              onNext: isLast ? _save : () => _goto(_step + 1),
+              onNext: isLast ? _save : _next,
             ),
           ],
         ),
@@ -272,7 +281,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.55,
+        childAspectRatio: 1.35,
         children: [
           for (final t in EventTemplate.all)
             _TemplateCard(
@@ -530,7 +539,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
       Row(
         children: [
           Text('アイコン', style: TextStyle(fontSize: 12.5, color: a.sub)),
-          if (!ref.watch(iconChangeUnlockedProvider)) ...[
+          if (!ref.watch(allIconsUnlockedProvider)) ...[
             const SizedBox(width: 6),
             Icon(Icons.lock, size: 12, color: a.brand),
             const SizedBox(width: 2),
@@ -622,8 +631,8 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
 }
 
 /// Icon picker with a シンプル/ライン tab. Applying a custom icon is gated behind
-/// one rewarded-ad view (`AppSettings.iconChangeUnlocked`); once unlocked it is
-/// free forever. "テンプレートに戻す" is always free.
+/// one rewarded-ad view per icon (`AppSettings.unlockedIconCodePoints`); once an
+/// icon is unlocked it is free forever. "テンプレートに戻す" is always free.
 class _IconPickerSheet extends ConsumerStatefulWidget {
   const _IconPickerSheet({
     required this.color,
@@ -648,13 +657,13 @@ class _IconPickerSheetState extends ConsumerState<_IconPickerSheet> {
   @override
   void initState() {
     super.initState();
-    if (!ref.read(iconChangeUnlockedProvider)) {
+    if (!ref.read(allIconsUnlockedProvider)) {
       ref.read(rewardedAdServiceProvider).preload();
     }
   }
 
   Future<void> _onIconTap(int codePoint) async {
-    if (ref.read(iconChangeUnlockedProvider)) {
+    if (ref.read(iconUnlockedProvider(codePoint))) {
       widget.onPick(codePoint);
       return;
     }
@@ -663,9 +672,8 @@ class _IconPickerSheetState extends ConsumerState<_IconPickerSheet> {
     if (!mounted) return;
     setState(() => _busy = false);
     if (earned) {
-      await ref
-          .read(settingsProvider.notifier)
-          .update((s) => s.copyWith(iconChangeUnlocked: true));
+      await ref.read(settingsProvider.notifier).update((s) => s.copyWith(
+          unlockedIconCodePoints: {...s.unlockedIconCodePoints, codePoint}));
       if (mounted) widget.onPick(codePoint);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -679,7 +687,7 @@ class _IconPickerSheetState extends ConsumerState<_IconPickerSheet> {
   @override
   Widget build(BuildContext context) {
     final a = context.anniv;
-    final unlocked = ref.watch(iconChangeUnlockedProvider);
+    final allUnlocked = ref.watch(allIconsUnlockedProvider);
     final groups = EventIcons.groupsFor(_style);
 
     return SafeArea(
@@ -728,7 +736,7 @@ class _IconPickerSheetState extends ConsumerState<_IconPickerSheet> {
                         _style = line ? IconStyle.outline : IconStyle.filled),
                   ),
                 ),
-                if (!unlocked)
+                if (!allUnlocked)
                   Container(
                     margin: const EdgeInsets.fromLTRB(20, 0, 20, 6),
                     padding:
@@ -744,7 +752,7 @@ class _IconPickerSheetState extends ConsumerState<_IconPickerSheet> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'アイコンの変更は、広告を1回見ると解放されます（以降はずっと自由）',
+                            'ロックされたアイコンは、広告を1回見るとそのアイコンだけ解放されます（以降はずっと自由）',
                             style: TextStyle(fontSize: 12, color: a.brand),
                           ),
                         ),
@@ -776,7 +784,8 @@ class _IconPickerSheetState extends ConsumerState<_IconPickerSheet> {
                                 icon: icon,
                                 color: widget.color,
                                 selected: icon.codePoint == widget.selected,
-                                locked: !unlocked,
+                                locked: !ref
+                                    .watch(iconUnlockedProvider(icon.codePoint)),
                                 onTap: () => _onIconTap(icon.codePoint),
                               ),
                           ],

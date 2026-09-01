@@ -11,7 +11,12 @@ class AdIds {
   const AdIds._();
 
   /// AdMob publisher: pub-3818461038959537
-  static const bool useTestAds = false;
+  ///
+  /// While true, every install requests Google's official public test ad
+  /// unit instead of the real one, so testers on unregistered devices see
+  /// clearly-labeled test creatives instead of real (possibly no-fill) ads.
+  /// TODO: flip to false only for the production release build.
+  static const bool useTestAds = true;
 
   /// Devices that should always receive test ads. The per-install hash changes
   /// on every reinstall, so prefer registering your daily phone in the AdMob

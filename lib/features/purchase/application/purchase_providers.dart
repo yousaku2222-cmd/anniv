@@ -100,6 +100,15 @@ class PurchaseController extends Notifier<PurchaseState> {
       await _iap.restorePurchases();
     } catch (e) {
       state = state.copyWith(pending: false, error: () => '$e');
+      return;
+    }
+    // restorePurchases() only kicks the platform restore off — when there's
+    // nothing to restore, purchaseStream never emits and _onPurchases never
+    // runs, so nothing would ever clear `pending`. Give any in-flight
+    // restored purchases a window to arrive, then stop waiting regardless.
+    await Future<void>.delayed(const Duration(seconds: 8));
+    if (state.pending) {
+      state = state.copyWith(pending: false);
     }
   }
 

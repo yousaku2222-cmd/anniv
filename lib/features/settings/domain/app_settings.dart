@@ -26,7 +26,7 @@ class AppSettings {
     this.displayFormat = DisplayFormat.daysLeft,
     this.themeMode = AppThemeMode.system,
     this.adRemoved = false,
-    this.iconChangeUnlocked = false,
+    this.unlockedIconCodePoints = const {},
     this.onboardingDone = false,
   });
 
@@ -38,8 +38,9 @@ class AppSettings {
   /// True once the "remove ads" purchase is verified.
   final bool adRemoved;
 
-  /// True once the user watched a rewarded ad to unlock custom event icons.
-  final bool iconChangeUnlocked;
+  /// Custom event icon codepoints the user has individually unlocked by
+  /// watching a rewarded ad for that icon.
+  final Set<int> unlockedIconCodePoints;
 
   final bool onboardingDone;
 
@@ -51,7 +52,7 @@ class AppSettings {
     DisplayFormat? displayFormat,
     AppThemeMode? themeMode,
     bool? adRemoved,
-    bool? iconChangeUnlocked,
+    Set<int>? unlockedIconCodePoints,
     bool? onboardingDone,
   }) {
     return AppSettings(
@@ -60,7 +61,8 @@ class AppSettings {
       displayFormat: displayFormat ?? this.displayFormat,
       themeMode: themeMode ?? this.themeMode,
       adRemoved: adRemoved ?? this.adRemoved,
-      iconChangeUnlocked: iconChangeUnlocked ?? this.iconChangeUnlocked,
+      unlockedIconCodePoints:
+          unlockedIconCodePoints ?? this.unlockedIconCodePoints,
       onboardingDone: onboardingDone ?? this.onboardingDone,
     );
   }
@@ -71,7 +73,7 @@ class AppSettings {
         'displayFormat': displayFormat.name,
         'themeMode': themeMode.name,
         'adRemoved': adRemoved,
-        'iconChangeUnlocked': iconChangeUnlocked,
+        'unlockedIconCodePoints': unlockedIconCodePoints.toList(),
         'onboardingDone': onboardingDone,
       };
 
@@ -85,7 +87,10 @@ class AppSettings {
         themeMode: _enumByName(AppThemeMode.values,
             json['themeMode'] as String?, AppThemeMode.system),
         adRemoved: json['adRemoved'] as bool? ?? false,
-        iconChangeUnlocked: json['iconChangeUnlocked'] as bool? ?? false,
+        unlockedIconCodePoints: (json['unlockedIconCodePoints'] as List?)
+                ?.map((e) => e as int)
+                .toSet() ??
+            const {},
         onboardingDone: json['onboardingDone'] as bool? ?? false,
       );
 
@@ -97,10 +102,16 @@ class AppSettings {
       other.displayFormat == displayFormat &&
       other.themeMode == themeMode &&
       other.adRemoved == adRemoved &&
-      other.iconChangeUnlocked == iconChangeUnlocked &&
+      setEquals(other.unlockedIconCodePoints, unlockedIconCodePoints) &&
       other.onboardingDone == onboardingDone;
 
   @override
-  int get hashCode => Object.hash(defaultNotifyTime, weekStart, displayFormat,
-      themeMode, adRemoved, iconChangeUnlocked, onboardingDone);
+  int get hashCode => Object.hash(
+      defaultNotifyTime,
+      weekStart,
+      displayFormat,
+      themeMode,
+      adRemoved,
+      Object.hashAllUnordered(unlockedIconCodePoints),
+      onboardingDone);
 }

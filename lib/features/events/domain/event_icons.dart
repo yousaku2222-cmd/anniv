@@ -182,4 +182,7 @@ class EventIcons {
   /// of the curated icons (e.g. an old backup) — callers fall back to the
   /// template icon.
   static IconData? byCodePoint(int codePoint) => _byCode[codePoint];
+
+  /// Every codepoint in the curated catalog (filled + outline combined).
+  static Set<int> get allCodePoints => _byCode.keys.toSet();
 }

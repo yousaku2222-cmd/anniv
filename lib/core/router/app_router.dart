@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/events/presentation/event_detail_screen.dart';
 import '../../features/events/presentation/event_edit_screen.dart';
+import '../../features/events/presentation/hidden_events_screen.dart';
 import '../../features/events/presentation/home_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/settings/application/settings_providers.dart';
@@ -34,6 +35,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'settings',
             builder: (_, _) => const SettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'hidden-events',
+                builder: (_, _) => const HiddenEventsScreen(),
+              ),
+            ],
           ),
           GoRoute(
             path: 'widget',

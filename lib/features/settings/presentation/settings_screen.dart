@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/app_info.dart';
@@ -127,6 +128,12 @@ class SettingsScreen extends ConsumerWidget {
               title: '復元',
               subtitle: 'バックアップから読み込み',
               onTap: () => _restoreBackup(context, ref),
+            ),
+            _Row(
+              icon: Icons.visibility_off_outlined,
+              title: '非表示にしたイベント',
+              subtitle: '表示に戻すにはここから',
+              onTap: () => context.push('/settings/hidden-events'),
             ),
           ]),
           const SizedBox(height: 20),
