@@ -227,6 +227,7 @@ class SettingsScreen extends ConsumerWidget {
               onPressed: () => Navigator.pop(context),
               child: const Text('キャンセル')),
           FilledButton(
+              style: dialogActionStyle,
               onPressed: () => Navigator.pop(context, controller.text),
               child: const Text('復元')),
         ],
@@ -472,8 +473,17 @@ class _GroupManagerState extends ConsumerState<_GroupManager> {
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   icon: Icon(Icons.delete_outline, color: a.faint),
-                  onPressed: () =>
-                      ref.read(groupsProvider.notifier).delete(g.id),
+                  onPressed: () async {
+                    final ok = await confirmDialog(
+                      context,
+                      title: 'グループを削除しますか？',
+                      message: '「${g.name}」を削除します。このグループに属するイベント自体は削除されません。',
+                      confirmLabel: '削除',
+                    );
+                    if (ok) {
+                      await ref.read(groupsProvider.notifier).delete(g.id);
+                    }
+                  },
                 ),
               ],
             ),
@@ -526,6 +536,7 @@ class _GroupManagerState extends ConsumerState<_GroupManager> {
               onPressed: () => Navigator.pop(context),
               child: const Text('キャンセル')),
           FilledButton(
+              style: dialogActionStyle,
               onPressed: () => Navigator.pop(context, controller.text),
               child: const Text('追加')),
         ],

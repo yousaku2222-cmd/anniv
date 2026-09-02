@@ -91,6 +91,15 @@ class PurchaseController extends Notifier<PurchaseState> {
       );
     } catch (e) {
       state = state.copyWith(pending: false, error: () => '$e');
+      return;
+    }
+    // buyNonConsumable() only kicks the platform purchase sheet off — if the
+    // store never emits on purchaseStream (store misconfiguration, a stalled
+    // sheet, etc.) _onPurchases never runs and `pending` would spin forever.
+    // Mirrors the same fallback in restore().
+    await Future<void>.delayed(const Duration(seconds: 20));
+    if (state.pending) {
+      state = state.copyWith(pending: false, error: () => '購入処理がタイムアウトしました。もう一度お試しください');
     }
   }
 

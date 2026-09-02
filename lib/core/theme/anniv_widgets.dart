@@ -152,6 +152,45 @@ class SectionLabel extends StatelessWidget {
       );
 }
 
+/// Compact size for a [FilledButton] placed in an [AlertDialog]'s `actions`.
+///
+/// The app-wide filled-button theme sets `minimumSize: Size.fromHeight(52)`
+/// (full-width CTAs elsewhere in the app), which also stretches dialog action
+/// buttons to infinite width — `actions` can't fit two of those side by side,
+/// so Flutter's OverflowBar silently stacks them vertically instead.
+final ButtonStyle dialogActionStyle =
+    FilledButton.styleFrom(minimumSize: const Size(64, 40));
+
+/// A standard "are you sure?" dialog for a destructive action. Returns true
+/// only if the user tapped the (destructive-styled) confirm button.
+Future<bool> confirmDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String confirmLabel,
+  String cancelLabel = 'キャンセル',
+}) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(cancelLabel),
+        ),
+        FilledButton(
+          style: dialogActionStyle,
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(confirmLabel),
+        ),
+      ],
+    ),
+  );
+  return ok ?? false;
+}
+
 /// Rounded card surface with the mock's soft shadow.
 class AnnivCard extends StatelessWidget {
   const AnnivCard({super.key, required this.child, this.onTap, this.padding});

@@ -129,7 +129,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               const SizedBox(height: 6),
               OutlinedButton(
                 onPressed: _busy ? null : () => _finish(samples: true),
-                child: const Text('サンプルイベントを見る'),
+                child: const Text('サンプルの記念日で試してみる'),
               ),
             ],
           ),

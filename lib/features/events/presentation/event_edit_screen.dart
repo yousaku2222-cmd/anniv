@@ -309,6 +309,10 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
       AnnivCard(
         padding: const EdgeInsets.all(6),
         child: CalendarDatePicker(
+          // CalendarDatePicker only reads `initialDate` once, on first build —
+          // without this key, tapping a quick-select chip below updates
+          // `_draft.targetDate` but the calendar itself never re-highlights.
+          key: ValueKey(_draft.targetDate),
           initialDate: _draft.targetDate,
           // 1900 so past birthdays / long-ago anniversaries are selectable.
           firstDate: DateTime(1900),

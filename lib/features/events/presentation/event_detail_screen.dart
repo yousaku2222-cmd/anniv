@@ -171,22 +171,13 @@ class EventDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('削除しますか？'),
-        content: const Text('この記念日を完全に削除します。元に戻せません。'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('キャンセル')),
-          FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('削除')),
-        ],
-      ),
+    final ok = await confirmDialog(
+      context,
+      title: '削除しますか？',
+      message: 'この記念日を完全に削除します。元に戻せません。',
+      confirmLabel: '削除',
     );
-    if (ok == true) {
+    if (ok) {
       await ref.read(eventsProvider.notifier).delete(eventId);
       if (context.mounted) context.pop();
     }
