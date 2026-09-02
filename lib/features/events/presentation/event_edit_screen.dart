@@ -281,7 +281,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.35,
+        childAspectRatio: 1.2,
         children: [
           for (final t in EventTemplate.all)
             _TemplateCard(
