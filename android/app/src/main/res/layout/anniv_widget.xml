@@ -9,16 +9,32 @@
     android:background="@drawable/anniv_widget_background"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/anniv_widget_title"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textColor="#FF4C4F68"
-        android:textSize="13sp"
-        tools:ignore="HardcodedText"
-        android:text="記念日を追加" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/anniv_widget_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="6dp"
+            tools:ignore="ContentDescription" />
+
+
+        <TextView
+            android:id="@+id/anniv_widget_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="#FF4C4F68"
+            android:textSize="13sp"
+            tools:ignore="HardcodedText"
+            android:text="記念日を追加" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/anniv_widget_count"

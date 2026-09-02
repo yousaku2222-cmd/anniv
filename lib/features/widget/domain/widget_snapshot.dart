@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
+
 import '../../events/domain/countdown.dart';
 import '../../events/domain/event.dart';
+import '../../events/domain/event_templates.dart';
 
-/// The small bundle of strings the home-screen widget renders. Kept flat and
+/// The small bundle of data the home-screen widget renders. Kept flat and
 /// pre-formatted so the native side needs no logic.
 class WidgetSnapshot {
   const WidgetSnapshot({
@@ -10,6 +13,8 @@ class WidgetSnapshot {
     required this.count,
     required this.unit,
     required this.caption,
+    required this.iconCodePoint,
+    required this.colorValue,
   });
 
   final bool empty;
@@ -18,12 +23,21 @@ class WidgetSnapshot {
   final String unit;
   final String caption;
 
-  static const WidgetSnapshot none = WidgetSnapshot(
+  /// [Icons.*] codepoint (MaterialIcons font, no package) for the event's
+  /// [EventVisuals.displayIcon] — the native widgets bundle the same font.
+  final int iconCodePoint;
+
+  /// ARGB int matching [EventVisuals.displayColor], i.e. `Color.toARGB32()`.
+  final int colorValue;
+
+  static final WidgetSnapshot none = WidgetSnapshot(
     empty: true,
     title: '記念日を追加',
     count: '—',
     unit: '',
     caption: 'Anniv を開いて登録',
+    iconCodePoint: Icons.auto_awesome_outlined.codePoint,
+    colorValue: 0xFFE85D43, // Anniv brand vermilion (app_tokens AnnivColors)
   );
 
   Map<String, Object> toData() => {
@@ -32,6 +46,8 @@ class WidgetSnapshot {
         'anniv_count': count,
         'anniv_unit': unit,
         'anniv_caption': caption,
+        'anniv_icon_codepoint': iconCodePoint,
+        'anniv_color': colorValue,
       };
 }
 
@@ -56,6 +72,8 @@ class WidgetSnapshotBuilder {
 
     final date = Countdown.nextOccurrence(best, today);
     final caption = '${date.month}月${date.day}日';
+    final iconCodePoint = best.displayIcon.codePoint;
+    final colorValue = best.displayColor.toARGB32();
     if (bestLeft == 0) {
       return WidgetSnapshot(
         empty: false,
@@ -63,6 +81,8 @@ class WidgetSnapshotBuilder {
         count: '当日',
         unit: '',
         caption: caption,
+        iconCodePoint: iconCodePoint,
+        colorValue: colorValue,
       );
     }
     return WidgetSnapshot(
@@ -71,6 +91,8 @@ class WidgetSnapshotBuilder {
       count: '$bestLeft',
       unit: '日',
       caption: '$caption まで',
+      iconCodePoint: iconCodePoint,
+      colorValue: colorValue,
     );
   }
 }

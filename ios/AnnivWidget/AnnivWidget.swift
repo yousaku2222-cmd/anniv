@@ -9,6 +9,20 @@ private let appGroupId = "group.com.annivapp.anniv"
 private let annivBrand = Color(red: 0xE8 / 255, green: 0x5D / 255, blue: 0x43 / 255)
 private let annivCream = Color(red: 0xFB / 255, green: 0xF7 / 255, blue: 0xF0 / 255)
 
+// Defaults mirror WidgetSnapshot.none (Icons.auto_awesome_outlined, Anniv brand).
+private let defaultIconCodePoint = 0xeea9
+private let defaultColorARGB = 0xFFE85D43
+
+/// ARGB int (as pushed by `Color.toARGB32()` on the Flutter side) to SwiftUI Color.
+private func color(fromARGB argb: Int) -> Color {
+    Color(
+        red: Double((argb >> 16) & 0xFF) / 255,
+        green: Double((argb >> 8) & 0xFF) / 255,
+        blue: Double(argb & 0xFF) / 255,
+        opacity: Double((argb >> 24) & 0xFF) / 255
+    )
+}
+
 // MARK: - Entry
 
 struct AnnivEntry: TimelineEntry {
@@ -18,6 +32,8 @@ struct AnnivEntry: TimelineEntry {
     let count: String
     let unit: String
     let caption: String
+    let iconCodePoint: Int
+    let colorARGB: Int
 
     static let placeholder = AnnivEntry(
         date: Date(),
@@ -25,7 +41,9 @@ struct AnnivEntry: TimelineEntry {
         title: "ママの誕生日",
         count: "12",
         unit: "日",
-        caption: "9月3日 まで"
+        caption: "9月3日 まで",
+        iconCodePoint: 0xef0f, // Icons.cake_outlined
+        colorARGB: 0xFFF08FA8 // AnnivEventColors.birthday
     )
 }
 
@@ -55,13 +73,19 @@ struct AnnivProvider: TimelineProvider {
         let store = UserDefaults(suiteName: appGroupId)
         let hasData = store?.object(forKey: "anniv_title") != nil
         let flaggedEmpty = store?.bool(forKey: "anniv_empty") ?? true
+        let iconCodePoint = (store?.object(forKey: "anniv_icon_codepoint") as? NSNumber)?.intValue
+            ?? defaultIconCodePoint
+        let colorARGB = (store?.object(forKey: "anniv_color") as? NSNumber)?.intValue
+            ?? defaultColorARGB
         return AnnivEntry(
             date: Date(),
             isEmpty: !hasData || flaggedEmpty,
             title: store?.string(forKey: "anniv_title") ?? "記念日を追加",
             count: store?.string(forKey: "anniv_count") ?? "—",
             unit: store?.string(forKey: "anniv_unit") ?? "",
-            caption: store?.string(forKey: "anniv_caption") ?? "Anniv を開いて登録"
+            caption: store?.string(forKey: "anniv_caption") ?? "Anniv を開いて登録",
+            iconCodePoint: iconCodePoint,
+            colorARGB: colorARGB
         )
     }
 }
@@ -101,12 +125,25 @@ struct AnnivWidgetEntryView: View {
             )
     }
 
+    /// The event's own colour + Material icon glyph (matches the icon chip
+    /// shown next to the event in the app's own list/detail screens).
+    private var eventIconChip: some View {
+        RoundedRectangle(cornerRadius: 6, style: .continuous)
+            .fill(color(fromARGB: entry.colorARGB))
+            .frame(width: 20, height: 20)
+            .overlay(
+                Text(UnicodeScalar(entry.iconCodePoint).map { String(Character($0)) } ?? "")
+                    .font(.custom("MaterialIcons-Regular", size: 12))
+                    .foregroundColor(.white)
+            )
+    }
+
     private var bigNumber: some View {
         HStack(alignment: .firstTextBaseline, spacing: 2) {
             Text(entry.count)
                 .font(.system(size: family == .systemSmall ? 44 : 52,
                               weight: .heavy, design: .rounded))
-                .foregroundColor(annivBrand)
+                .foregroundColor(color(fromARGB: entry.colorARGB))
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
             if !entry.unit.isEmpty {
@@ -127,10 +164,13 @@ struct AnnivWidgetEntryView: View {
             }
             Spacer(minLength: 0)
             bigNumber
-            Text(entry.title)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundColor(.primary)
-                .lineLimit(1)
+            HStack(spacing: 4) {
+                eventIconChip
+                Text(entry.title)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+            }
             Text(entry.caption)
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
@@ -149,10 +189,13 @@ struct AnnivWidgetEntryView: View {
                         .foregroundColor(.primary.opacity(0.7))
                 }
                 Spacer(minLength: 0)
-                Text(entry.title)
-                    .font(.system(size: 17, weight: .heavy))
-                    .foregroundColor(.primary)
-                    .lineLimit(2)
+                HStack(spacing: 4) {
+                    eventIconChip
+                    Text(entry.title)
+                        .font(.system(size: 17, weight: .heavy))
+                        .foregroundColor(.primary)
+                        .lineLimit(2)
+                }
                 Text(entry.caption)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
@@ -221,6 +264,12 @@ struct AnnivWidget: Widget {
     AnnivWidget()
 } timeline: {
     AnnivEntry.placeholder
-    AnnivEntry(date: Date(), isEmpty: false, title: "沖縄旅行", count: "当日", unit: "", caption: "12月30日")
-    AnnivEntry(date: Date(), isEmpty: true, title: "記念日を追加", count: "—", unit: "", caption: "Anniv を開いて登録")
+    AnnivEntry(
+        date: Date(), isEmpty: false, title: "沖縄旅行", count: "当日", unit: "", caption: "12月30日",
+        iconCodePoint: 0xe299, colorARGB: 0xFF43B582
+    )
+    AnnivEntry(
+        date: Date(), isEmpty: true, title: "記念日を追加", count: "—", unit: "",
+        caption: "Anniv を開いて登録", iconCodePoint: defaultIconCodePoint, colorARGB: defaultColorARGB
+    )
 }
