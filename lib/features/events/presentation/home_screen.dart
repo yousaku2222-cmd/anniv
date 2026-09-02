@@ -33,24 +33,43 @@ class HomeScreen extends ConsumerWidget {
             _Header(today: today),
             SizedBox(
               height: 44,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
+              child: Row(
                 children: [
+                  const SizedBox(width: AppSpacing.screenH),
                   _Tab(
                     label: 'すべて',
                     selected: filter == null,
                     onTap: () =>
                         ref.read(groupFilterProvider.notifier).set(null),
                   ),
-                  for (final g in groups)
-                    _Tab(
-                      label: g.name,
-                      selected: filter == g.id,
-                      onTap: () =>
-                          ref.read(groupFilterProvider.notifier).set(g.id),
+                  Expanded(
+                    child: ReorderableListView(
+                      scrollDirection: Axis.horizontal,
+                      buildDefaultDragHandles: false,
+                      padding:
+                          const EdgeInsets.only(right: AppSpacing.screenH),
+                      onReorderItem: (oldIndex, newIndex) {
+                        final ids = [for (final g in groups) g.id];
+                        final id = ids.removeAt(oldIndex);
+                        ids.insert(newIndex, id);
+                        ref.read(groupsProvider.notifier).reorder(ids);
+                      },
+                      children: [
+                        for (var i = 0; i < groups.length; i++)
+                          ReorderableDelayedDragStartListener(
+                            key: ValueKey(groups[i].id),
+                            index: i,
+                            child: _Tab(
+                              label: groups[i].name,
+                              selected: filter == groups[i].id,
+                              onTap: () => ref
+                                  .read(groupFilterProvider.notifier)
+                                  .set(groups[i].id),
+                            ),
+                          ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),

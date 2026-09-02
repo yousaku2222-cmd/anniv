@@ -471,42 +471,42 @@ class _GroupManagerState extends ConsumerState<_GroupManager> {
             },
             children: [
               for (var i = 0; i < groups.length; i++)
-                Padding(
+                ReorderableDelayedDragStartListener(
                   key: ValueKey(groups[i].id),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      ReorderableDragStartListener(
-                        index: i,
-                        child: Icon(Icons.drag_indicator, size: 18, color: a.faint),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.folder_outlined, size: 18, color: a.sub),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(groups[i].name,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, color: a.ink)),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: Icon(Icons.delete_outline, color: a.faint),
-                        onPressed: () async {
-                          final ok = await confirmDialog(
-                            context,
-                            title: 'グループを削除しますか？',
-                            message:
-                                '「${groups[i].name}」を削除します。このグループに属するイベント自体は削除されません。',
-                            confirmLabel: '削除',
-                          );
-                          if (ok) {
-                            await ref
-                                .read(groupsProvider.notifier)
-                                .delete(groups[i].id);
-                          }
-                        },
-                      ),
-                    ],
+                  index: i,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      children: [
+                        Icon(Icons.drag_indicator, size: 18, color: a.faint),
+                        const SizedBox(width: 8),
+                        Icon(Icons.folder_outlined, size: 18, color: a.sub),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(groups[i].name,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w700, color: a.ink)),
+                        ),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          icon: Icon(Icons.delete_outline, color: a.faint),
+                          onPressed: () async {
+                            final ok = await confirmDialog(
+                              context,
+                              title: 'グループを削除しますか？',
+                              message:
+                                  '「${groups[i].name}」を削除します。このグループに属するイベント自体は削除されません。',
+                              confirmLabel: '削除',
+                            );
+                            if (ok) {
+                              await ref
+                                  .read(groupsProvider.notifier)
+                                  .delete(groups[i].id);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],
