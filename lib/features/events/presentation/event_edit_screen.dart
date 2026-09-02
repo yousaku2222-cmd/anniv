@@ -13,9 +13,9 @@ import '../../settings/application/settings_providers.dart';
 import '../application/event_providers.dart';
 import '../domain/countdown.dart';
 import '../domain/event.dart';
-import '../domain/event_icons.dart';
 import '../domain/event_templates.dart';
 import 'event_presentation.dart';
+import 'icon_picker_sheet.dart';
 
 /// New events go through the mock's 5-step wizard; existing events open a single
 /// scroll with the same section widgets and a Save action in the app bar.
@@ -306,7 +306,7 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
     final today = DateTime.now();
     final t = DateTime(today.year, today.month, today.day);
     return [
-      _Segmented(
+      SegmentedToggle(
         options: const {false: '単発', true: '毎年繰り返す'},
         value: _draft.repeat == RepeatRule.yearly,
         onChanged: (yearly) => _set(_draft.copyWith(
@@ -622,267 +622,14 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
   }
 
   Future<void> _pickIcon() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.anniv.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => _IconPickerSheet(
-        color: _draft.displayColor,
-        selected: _draft.iconCodePoint,
-        onPick: (cp) {
-          _set(_draft.copyWith(iconCodePoint: () => cp));
-          Navigator.pop(ctx);
-        },
-      ),
-    );
-  }
-}
-
-/// Icon picker with a シンプル/ライン tab. Applying a custom icon is gated behind
-/// one rewarded-ad view per icon (`AppSettings.unlockedIconCodePoints`); once an
-/// icon is unlocked it is free forever. "テンプレートに戻す" is always free.
-class _IconPickerSheet extends ConsumerStatefulWidget {
-  const _IconPickerSheet({
-    required this.color,
-    required this.selected,
-    required this.onPick,
-  });
-
-  final Color color;
-  final int? selected;
-
-  /// null = "back to template icon".
-  final ValueChanged<int?> onPick;
-
-  @override
-  ConsumerState<_IconPickerSheet> createState() => _IconPickerSheetState();
-}
-
-class _IconPickerSheetState extends ConsumerState<_IconPickerSheet> {
-  IconStyle _style = IconStyle.filled;
-  bool _busy = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (!ref.read(allIconsUnlockedProvider)) {
-      ref.read(rewardedAdServiceProvider).preload();
-    }
-  }
-
-  Future<void> _onIconTap(int codePoint) async {
-    if (ref.read(iconUnlockedProvider(codePoint))) {
-      widget.onPick(codePoint);
-      return;
-    }
-    setState(() => _busy = true);
-    final earned = await ref.read(rewardedAdServiceProvider).showForReward();
-    if (!mounted) return;
-    setState(() => _busy = false);
-    if (earned) {
-      await ref.read(settingsProvider.notifier).update((s) => s.copyWith(
-          unlockedIconCodePoints: {...s.unlockedIconCodePoints, codePoint}));
-      if (mounted) widget.onPick(codePoint);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('広告を再生できませんでした。時間をおいて、もう一度お試しください。'),
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final a = context.anniv;
-    final allUnlocked = ref.watch(allIconsUnlockedProvider);
-    final groups = EventIcons.groupsFor(_style);
-
-    return SafeArea(
-      top: false,
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.74,
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                const SizedBox(height: 10),
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: a.line,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 12, 6),
-                  child: Row(
-                    children: [
-                      Text('アイコン',
-                          style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              color: a.ink)),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () => widget.onPick(null),
-                        child: const Text('テンプレートに戻す'),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                  child: _Segmented(
-                    options: const {
-                      false: 'シンプル',
-                      true: 'ライン',
-                    },
-                    value: _style == IconStyle.outline,
-                    onChanged: (line) => setState(() =>
-                        _style = line ? IconStyle.outline : IconStyle.filled),
-                  ),
-                ),
-                if (!allUnlocked)
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: a.brandSoft,
-                      borderRadius: AppRadius.rowBr,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.play_circle_outline,
-                            size: 18, color: a.brand),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'ロックされたアイコンは、広告を1回見るとそのアイコンだけ解放されます（以降はずっと自由）',
-                            style: TextStyle(fontSize: 12, color: a.brand),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                    children: [
-                      for (final group in groups) ...[
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 10),
-                          child: Text(
-                            group.label,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: a.sub,
-                            ),
-                          ),
-                        ),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: [
-                            for (final icon in group.icons)
-                              _IconCell(
-                                icon: icon,
-                                color: widget.color,
-                                selected: icon.codePoint == widget.selected,
-                                locked: !ref
-                                    .watch(iconUnlockedProvider(icon.codePoint)),
-                                onTap: () => _onIconTap(icon.codePoint),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (_busy)
-              Positioned.fill(
-                child: ColoredBox(
-                  color: a.surface.withValues(alpha: 0.6),
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _IconCell extends StatelessWidget {
-  const _IconCell({
-    required this.icon,
-    required this.color,
-    required this.selected,
-    required this.onTap,
-    this.locked = false,
-  });
-
-  final IconData icon;
-  final Color color;
-  final bool selected;
-  final bool locked;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final a = context.anniv;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 52,
-        height: 52,
-        clipBehavior: Clip.none,
-        decoration: BoxDecoration(
-          color: selected ? color.withValues(alpha: 0.16) : a.chipBg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected ? color : Colors.transparent,
-            width: 2,
-          ),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: selected
-                  ? color
-                  : (locked ? a.ink.withValues(alpha: 0.45) : a.ink),
-            ),
-            if (locked)
-              Positioned(
-                right: -4,
-                bottom: -4,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: a.brand,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: a.surface, width: 1.5),
-                  ),
-                  child: const Icon(Icons.lock, size: 10, color: Colors.white),
-                ),
-              ),
-          ],
-        ),
-      ),
+    await showIconPicker(
+      context,
+      color: _draft.displayColor,
+      selected: _draft.iconCodePoint,
+      onPick: (cp) {
+        _set(_draft.copyWith(iconCodePoint: () => cp));
+        Navigator.pop(context);
+      },
     );
   }
 }
@@ -1012,55 +759,6 @@ class _TemplateCard extends StatelessWidget {
   }
 }
 
-class _Segmented extends StatelessWidget {
-  const _Segmented({
-    required this.options,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final Map<bool, String> options;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final a = context.anniv;
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: a.chipBg,
-        borderRadius: BorderRadius.circular(AppRadius.seg),
-      ),
-      child: Row(
-        children: [
-          for (final e in options.entries)
-            Expanded(
-              child: GestureDetector(
-                onTap: () => onChanged(e.key),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: e.key == value ? a.surface : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.seg - 3),
-                  ),
-                  child: Text(
-                    e.value,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: e.key == value ? a.ink : a.sub,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
 
 class _RadioTile<T> extends StatelessWidget {
   const _RadioTile({

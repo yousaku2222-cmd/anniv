@@ -228,3 +228,55 @@ class AnnivCard extends StatelessWidget {
     );
   }
 }
+
+/// Two/three-way pill toggle (e.g. 単発/毎年繰り返す, シンプル/ライン).
+class SegmentedToggle extends StatelessWidget {
+  const SegmentedToggle({
+    super.key,
+    required this.options,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final Map<bool, String> options;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = context.anniv;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: a.chipBg,
+        borderRadius: BorderRadius.circular(AppRadius.seg),
+      ),
+      child: Row(
+        children: [
+          for (final e in options.entries)
+            Expanded(
+              child: GestureDetector(
+                onTap: () => onChanged(e.key),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: e.key == value ? a.surface : Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.seg - 3),
+                  ),
+                  child: Text(
+                    e.value,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: e.key == value ? a.ink : a.sub,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

@@ -13,6 +13,7 @@ import '../application/event_providers.dart';
 import '../domain/event.dart';
 import '../domain/event_templates.dart';
 import 'event_presentation.dart';
+import 'icon_picker_sheet.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -271,7 +272,21 @@ class _EventCard extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
                 child: Row(
                   children: [
-                    AnnivIconChip(icon: event.displayIcon, color: color),
+                    GestureDetector(
+                      onLongPress: () => showIconPicker(
+                        context,
+                        color: color,
+                        selected: event.iconCodePoint,
+                        onPick: (cp) {
+                          ref
+                              .read(eventsProvider.notifier)
+                              .save(event.copyWith(iconCodePoint: () => cp));
+                          Navigator.pop(context);
+                        },
+                      ),
+                      child:
+                          AnnivIconChip(icon: event.displayIcon, color: color),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
