@@ -458,35 +458,58 @@ class _GroupManagerState extends ConsumerState<_GroupManager> {
     final adGated = ref.watch(adsEnabledProvider);
     return Column(
       children: [
-        for (final g in groups)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              children: [
-                Icon(Icons.folder_outlined, size: 18, color: a.sub),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(g.name,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w700, color: a.ink)),
+        if (groups.isNotEmpty)
+          ReorderableListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            onReorderItem: (oldIndex, newIndex) {
+              final ids = [for (final g in groups) g.id];
+              final id = ids.removeAt(oldIndex);
+              ids.insert(newIndex, id);
+              ref.read(groupsProvider.notifier).reorder(ids);
+            },
+            children: [
+              for (var i = 0; i < groups.length; i++)
+                Padding(
+                  key: ValueKey(groups[i].id),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      ReorderableDragStartListener(
+                        index: i,
+                        child: Icon(Icons.drag_indicator, size: 18, color: a.faint),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(Icons.folder_outlined, size: 18, color: a.sub),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(groups[i].name,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, color: a.ink)),
+                      ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: Icon(Icons.delete_outline, color: a.faint),
+                        onPressed: () async {
+                          final ok = await confirmDialog(
+                            context,
+                            title: 'グループを削除しますか？',
+                            message:
+                                '「${groups[i].name}」を削除します。このグループに属するイベント自体は削除されません。',
+                            confirmLabel: '削除',
+                          );
+                          if (ok) {
+                            await ref
+                                .read(groupsProvider.notifier)
+                                .delete(groups[i].id);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  icon: Icon(Icons.delete_outline, color: a.faint),
-                  onPressed: () async {
-                    final ok = await confirmDialog(
-                      context,
-                      title: 'グループを削除しますか？',
-                      message: '「${g.name}」を削除します。このグループに属するイベント自体は削除されません。',
-                      confirmLabel: '削除',
-                    );
-                    if (ok) {
-                      await ref.read(groupsProvider.notifier).delete(g.id);
-                    }
-                  },
-                ),
-              ],
-            ),
+            ],
           ),
         InkWell(
           onTap: _busy ? null : _addGroup,

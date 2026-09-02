@@ -48,7 +48,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: 'event/new',
-            builder: (_, _) => const EventEditScreen(),
+            builder: (_, state) => EventEditScreen(
+                initialGroupId: state.uri.queryParameters['groupId']),
           ),
           GoRoute(
             path: 'event/:id/edit',

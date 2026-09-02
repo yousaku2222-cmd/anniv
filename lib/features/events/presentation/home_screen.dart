@@ -56,11 +56,11 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 6),
             Expanded(
-              child: events.isEmpty
-                  ? const _EmptyState()
-                  : Stack(
-                      children: [
-                        ListView.separated(
+              child: Stack(
+                children: [
+                  events.isEmpty
+                      ? const _EmptyState()
+                      : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(
                               AppSpacing.screenH, 8, AppSpacing.screenH, 108),
                           itemCount: events.length,
@@ -69,15 +69,16 @@ class HomeScreen extends ConsumerWidget {
                           itemBuilder: (context, i) =>
                               _EventCard(event: events[i]),
                         ),
-                        Positioned(
-                          right: AppSpacing.screenH,
-                          bottom: 20,
-                          child: GradientFab(
-                            onPressed: () => context.push('/event/new'),
-                          ),
-                        ),
-                      ],
+                  Positioned(
+                    right: AppSpacing.screenH,
+                    bottom: 20,
+                    child: GradientFab(
+                      onPressed: () => context.push(
+                          filter == null ? '/event/new' : '/event/new?groupId=$filter'),
                     ),
+                  ),
+                ],
+              ),
             ),
             Container(
               color: a.bg,
@@ -88,9 +89,6 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: events.isEmpty
-          ? GradientFab(onPressed: () => context.push('/event/new'))
-          : null,
     );
   }
 }

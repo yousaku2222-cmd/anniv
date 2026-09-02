@@ -20,9 +20,13 @@ import 'event_presentation.dart';
 /// New events go through the mock's 5-step wizard; existing events open a single
 /// scroll with the same section widgets and a Save action in the app bar.
 class EventEditScreen extends ConsumerStatefulWidget {
-  const EventEditScreen({super.key, this.eventId});
+  const EventEditScreen({super.key, this.eventId, this.initialGroupId});
 
   final String? eventId;
+
+  /// Pre-selects a group when creating a new event (e.g. the group tab the
+  /// user was viewing on the home screen), so they don't have to reselect it.
+  final String? initialGroupId;
 
   bool get isCreating => eventId == null;
 
@@ -57,6 +61,9 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
       _draft = ref
           .read(eventsProvider.notifier)
           .draftFromTemplate(EventType.birthday);
+      if (widget.initialGroupId != null) {
+        _draft = _draft.copyWith(groupId: () => widget.initialGroupId);
+      }
     } else {
       final existing = ref.read(eventsProvider.notifier).byId(widget.eventId!);
       _draft = existing ??
