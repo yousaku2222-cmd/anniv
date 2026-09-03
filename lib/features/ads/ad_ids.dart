@@ -41,8 +41,9 @@ class AdIds {
   // Real AdMob rewarded units (app: Anniv). Create them in the AdMob console
   // (アプリ ▸ 広告ユニット ▸ リワード) and paste the ids here. While empty the
   // Google test rewarded unit is used even in release.
-  static const String _androidRewarded = '';
-  static const String _iosRewarded = '';
+  static const String _androidRewarded =
+      'ca-app-pub-3818461038959537/4309894560';
+  static const String _iosRewarded = 'ca-app-pub-3818461038959537/5674841920';
 
   static String get bannerUnitId {
     if (Platform.isIOS) return useTestAds ? _iosTestBanner : _iosBanner;
