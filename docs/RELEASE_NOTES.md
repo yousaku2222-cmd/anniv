@@ -4,6 +4,25 @@
 
 ---
 
+## 1.0.0+5 (2026-09-05, iOS App Review再提出向け)
+
+### 詳細版(社内記録用、ストア掲載なし)
+
+**対応内容**: App Store審査でGuideline 2.1(Information Needed)により却下。「App Tracking
+Transparencyフレームワークを使用しているが、審査端末でATT許可ダイアログが確認できない」との指摘。
+
+**原因**: `ad_service.dart`の初期化順序が「Google UMP同意フォーム処理→完了後にATT許可リクエスト」
+となっており、UMP側の`requestConsentInfoUpdate`にタイムアウト処理がなかったため、ネットワーク
+状況次第でコールバックが返らずATTリクエスト自体が実行されないことがあった。
+
+**修正** (コミット`1565e27`): ATT許可リクエストをUMP同意処理より先に実行するよう順序変更。UMP
+同意処理には8秒のタイムアウトを追加し、応答がなくても後続のAdMob初期化がブロックされないように。
+
+**リワード広告本番ID反映** (コミット`e1b4e55`): `useTestAds`を`false`に切り替え、バナー/リワード
+とも本番AdMobユニットで配信されるように。
+
+**ビルド番号**: pubspec `1.0.0+5`、iOS Widget Extension側の`CURRENT_PROJECT_VERSION`も5に同期。
+
 ## 1.0.0+4 (2026-09-02, Android クローズドテスト向け)
 
 ### ストア掲載用(短縮版)
