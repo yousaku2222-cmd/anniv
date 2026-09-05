@@ -67,7 +67,7 @@
 
 ## 6. リリース前チェック
 
-- [ ] `ad_ids.dart` の `useTestAds = false` ＋ 本番ユニットID
+- [x] `ad_ids.dart` の `useTestAds = false` ＋ 本番ユニットID（2026-09-05、バナー/リワードとも本番ID反映済み）
 - [ ] AdMob アプリID（manifest / Info.plist）を本番に
 - [ ] `lib/core/app_info.dart` `privacyPolicyUrl` を公開URLに
 - [ ] `anniv_remove_ads` を両ストアで作成・有効化

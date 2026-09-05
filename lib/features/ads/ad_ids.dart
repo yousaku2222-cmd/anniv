@@ -15,12 +15,15 @@ class AdIds {
   /// While true, every install requests Google's official public test ad
   /// unit instead of the real one, so testers on unregistered devices see
   /// clearly-labeled test creatives instead of real (possibly no-fill) ads.
-  /// TODO: flip to false only for the production release build.
-  static const bool useTestAds = true;
+  static const bool useTestAds = false;
 
   /// Devices that should always receive test ads. The per-install hash changes
   /// on every reinstall, so prefer registering your daily phone in the AdMob
   /// console (Settings > Test devices). Add an id here only for a stable build.
+  ///
+  /// Now that [useTestAds] is false, register your own daily-driver device(s)
+  /// here (or in the AdMob console) before opening real ads yourself, or the
+  /// impressions/clicks risk being flagged as invalid traffic.
   static const List<String> testDeviceIds = [];
 
   // Google's always-available test units.

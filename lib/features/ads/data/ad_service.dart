@@ -37,7 +37,9 @@ class GoogleAdService implements AdService {
 
   Future<void> _init() async {
     try {
-      await _requestConsent();
+      // ATT must not be blocked on the UMP round-trip below: request it first
+      // so a slow/stuck consent network call can never prevent the prompt
+      // from appearing (App Store review flagged a build where it never did).
       if (Platform.isIOS) {
         final status =
             await AppTrackingTransparency.trackingAuthorizationStatus;
@@ -45,6 +47,10 @@ class GoogleAdService implements AdService {
           await AppTrackingTransparency.requestTrackingAuthorization();
         }
       }
+      // Google's consent callbacks aren't guaranteed to fire promptly on a
+      // slow network, so cap the wait and proceed without blocking ad init.
+      await _requestConsent().timeout(const Duration(seconds: 8),
+          onTimeout: () {});
       if (AdIds.testDeviceIds.isNotEmpty) {
         await MobileAds.instance.updateRequestConfiguration(
           RequestConfiguration(testDeviceIds: AdIds.testDeviceIds),
