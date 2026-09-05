@@ -40,11 +40,20 @@ class GoogleAdService implements AdService {
       // ATT must not be blocked on the UMP round-trip below: request it first
       // so a slow/stuck consent network call can never prevent the prompt
       // from appearing (App Store review flagged a build where it never did).
+      // Both calls are also capped: the platform channel has been observed to
+      // hang indefinitely on some OS versions without ever throwing, which
+      // would otherwise leave ad init (and the banner) stuck forever.
       if (Platform.isIOS) {
-        final status =
-            await AppTrackingTransparency.trackingAuthorizationStatus;
-        if (status == TrackingStatus.notDetermined) {
-          await AppTrackingTransparency.requestTrackingAuthorization();
+        try {
+          final status = await AppTrackingTransparency
+              .trackingAuthorizationStatus
+              .timeout(const Duration(seconds: 5));
+          if (status == TrackingStatus.notDetermined) {
+            await AppTrackingTransparency.requestTrackingAuthorization()
+                .timeout(const Duration(seconds: 60));
+          }
+        } on TimeoutException catch (e) {
+          debugPrint('Anniv: ATT request timed out, continuing without it: $e');
         }
       }
       // Google's consent callbacks aren't guaranteed to fire promptly on a
