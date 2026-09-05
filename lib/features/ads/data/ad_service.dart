@@ -45,6 +45,12 @@ class GoogleAdService implements AdService {
       // would otherwise leave ad init (and the banner) stuck forever.
       if (Platform.isIOS) {
         try {
+          // Calling this before the app's window is fully active can make
+          // iOS silently skip the prompt instead of showing it (observed
+          // intermittently: same code, same reset device, no error either
+          // way). initState() of the first banner runs right as the screen
+          // is still transitioning in, so give it a beat to settle first.
+          await Future<void>.delayed(const Duration(milliseconds: 500));
           final status = await AppTrackingTransparency
               .trackingAuthorizationStatus
               .timeout(const Duration(seconds: 5));
