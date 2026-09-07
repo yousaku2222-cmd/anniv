@@ -9,6 +9,14 @@ private let appGroupId = "group.com.annivapp.anniv"
 private let annivBrand = Color(red: 0xE8 / 255, green: 0x5D / 255, blue: 0x43 / 255)
 private let annivCream = Color(red: 0xFB / 255, green: 0xF7 / 255, blue: 0xF0 / 255)
 
+// Widget background is pinned to `annivCream` regardless of system appearance
+// (see `widgetBackground` below), so text must NOT use SwiftUI's adaptive
+// .primary/.secondary — those flip to white/light-gray in dark mode and
+// become invisible against the always-light background. Fixed colors that
+// mirror the Android widget's title/caption tones instead.
+private let annivTextPrimary = Color(red: 0x4C / 255, green: 0x4F / 255, blue: 0x68 / 255)
+private let annivTextSecondary = Color(red: 0x6F / 255, green: 0x71 / 255, blue: 0x89 / 255)
+
 // Defaults mirror WidgetSnapshot.none (Icons.auto_awesome_outlined, Anniv brand).
 private let defaultIconCodePoint = 0xeea9
 private let defaultColorARGB = 0xFFE85D43
@@ -149,7 +157,7 @@ struct AnnivWidgetEntryView: View {
             if !entry.unit.isEmpty {
                 Text(entry.unit)
                     .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(annivTextSecondary)
             }
         }
     }
@@ -160,7 +168,7 @@ struct AnnivWidgetEntryView: View {
                 brandMark
                 Text("Anniv")
                     .font(.system(size: 12, weight: .heavy))
-                    .foregroundColor(.primary.opacity(0.7))
+                    .foregroundColor(annivTextPrimary.opacity(0.7))
             }
             Spacer(minLength: 0)
             bigNumber
@@ -168,12 +176,12 @@ struct AnnivWidgetEntryView: View {
                 eventIconChip
                 Text(entry.title)
                     .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(annivTextPrimary)
                     .lineLimit(1)
             }
             Text(entry.caption)
                 .font(.system(size: 11))
-                .foregroundColor(.secondary)
+                .foregroundColor(annivTextSecondary)
                 .lineLimit(1)
         }
         .padding(14)
@@ -186,19 +194,19 @@ struct AnnivWidgetEntryView: View {
                     brandMark
                     Text("Anniv")
                         .font(.system(size: 12, weight: .heavy))
-                        .foregroundColor(.primary.opacity(0.7))
+                        .foregroundColor(annivTextPrimary.opacity(0.7))
                 }
                 Spacer(minLength: 0)
                 HStack(spacing: 4) {
                     eventIconChip
                     Text(entry.title)
                         .font(.system(size: 17, weight: .heavy))
-                        .foregroundColor(.primary)
+                        .foregroundColor(annivTextPrimary)
                         .lineLimit(2)
                 }
                 Text(entry.caption)
                     .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(annivTextSecondary)
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
@@ -207,7 +215,7 @@ struct AnnivWidgetEntryView: View {
                 Text("COUNTDOWN")
                     .font(.system(size: 9, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(.secondary.opacity(0.7))
+                    .foregroundColor(annivTextSecondary.opacity(0.7))
             }
         }
         .padding(16)
@@ -219,15 +227,15 @@ struct AnnivWidgetEntryView: View {
                 brandMark
                 Text("Anniv")
                     .font(.system(size: 12, weight: .heavy))
-                    .foregroundColor(.primary.opacity(0.7))
+                    .foregroundColor(annivTextPrimary.opacity(0.7))
             }
             Spacer(minLength: 0)
             Text(entry.title)
                 .font(.system(size: 15, weight: .heavy))
-                .foregroundColor(.primary)
+                .foregroundColor(annivTextPrimary)
             Text(entry.caption)
                 .font(.system(size: 12))
-                .foregroundColor(.secondary)
+                .foregroundColor(annivTextSecondary)
         }
         .padding(16)
     }
