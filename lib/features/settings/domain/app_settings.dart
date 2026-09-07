@@ -27,6 +27,7 @@ class AppSettings {
     this.themeMode = AppThemeMode.system,
     this.adRemoved = false,
     this.unlockedIconCodePoints = const {},
+    this.unlockedColorValues = const {},
     this.onboardingDone = false,
   });
 
@@ -42,6 +43,11 @@ class AppSettings {
   /// watching a rewarded ad for that icon.
   final Set<int> unlockedIconCodePoints;
 
+  /// Extra event background colours (ARGB32 ints, see [Color.toARGB32]) the
+  /// user has individually unlocked by watching a rewarded ad for that
+  /// colour. See `AnnivEventColors.extra`.
+  final Set<int> unlockedColorValues;
+
   final bool onboardingDone;
 
   static const AppSettings defaults = AppSettings();
@@ -53,6 +59,7 @@ class AppSettings {
     AppThemeMode? themeMode,
     bool? adRemoved,
     Set<int>? unlockedIconCodePoints,
+    Set<int>? unlockedColorValues,
     bool? onboardingDone,
   }) {
     return AppSettings(
@@ -63,6 +70,7 @@ class AppSettings {
       adRemoved: adRemoved ?? this.adRemoved,
       unlockedIconCodePoints:
           unlockedIconCodePoints ?? this.unlockedIconCodePoints,
+      unlockedColorValues: unlockedColorValues ?? this.unlockedColorValues,
       onboardingDone: onboardingDone ?? this.onboardingDone,
     );
   }
@@ -74,6 +82,7 @@ class AppSettings {
         'themeMode': themeMode.name,
         'adRemoved': adRemoved,
         'unlockedIconCodePoints': unlockedIconCodePoints.toList(),
+        'unlockedColorValues': unlockedColorValues.toList(),
         'onboardingDone': onboardingDone,
       };
 
@@ -91,6 +100,10 @@ class AppSettings {
                 ?.map((e) => e as int)
                 .toSet() ??
             const {},
+        unlockedColorValues: (json['unlockedColorValues'] as List?)
+                ?.map((e) => e as int)
+                .toSet() ??
+            const {},
         onboardingDone: json['onboardingDone'] as bool? ?? false,
       );
 
@@ -103,6 +116,7 @@ class AppSettings {
       other.themeMode == themeMode &&
       other.adRemoved == adRemoved &&
       setEquals(other.unlockedIconCodePoints, unlockedIconCodePoints) &&
+      setEquals(other.unlockedColorValues, unlockedColorValues) &&
       other.onboardingDone == onboardingDone;
 
   @override
@@ -113,5 +127,6 @@ class AppSettings {
       themeMode,
       adRemoved,
       Object.hashAllUnordered(unlockedIconCodePoints),
+      Object.hashAllUnordered(unlockedColorValues),
       onboardingDone);
 }

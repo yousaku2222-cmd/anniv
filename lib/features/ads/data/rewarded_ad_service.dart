@@ -8,7 +8,8 @@ import 'ad_service.dart';
 
 /// Shows a single rewarded ad and reports whether the user earned the reward.
 /// Used to unlock one custom icon at a time in the icon picker
-/// (`AppSettings.unlockedIconCodePoints`).
+/// (`AppSettings.unlockedIconCodePoints`), and one extra background colour at
+/// a time in the event editor (`AppSettings.unlockedColorValues`).
 abstract class RewardedAdService {
   /// True once an ad is preloaded and ready to show instantly.
   bool get isReady;

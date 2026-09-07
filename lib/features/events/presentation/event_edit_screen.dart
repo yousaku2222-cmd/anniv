@@ -42,6 +42,10 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
   bool _initialised = false;
   bool _busy = false;
 
+  /// ARGB32 of the extra colour currently being unlocked via rewarded ad, or
+  /// null when no unlock is in flight. Only one at a time.
+  int? _colorUnlockPendingArgb;
+
   /// The 5th and every later new event costs one rewarded-ad view.
   static const int _freeEventQuota = 4;
 
@@ -72,6 +76,9 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
     _titleController.text = _draft.title;
 
     if (_needsAdToSave) ref.read(rewardedAdServiceProvider).preload();
+    if (!ref.read(allColorsUnlockedProvider)) {
+      ref.read(rewardedAdServiceProvider).preload();
+    }
   }
 
   @override
@@ -93,6 +100,39 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
       milestones: t.buildMilestones(),
       colorValue: () => null,
     ));
+  }
+
+  /// Applies [c] as the background colour. Template colours (and "auto",
+  /// `c == null`) are always free; an extra colour ([AnnivEventColors.extra])
+  /// costs one rewarded-ad view the first time it's picked, same mechanic as
+  /// the icon picker's per-icon unlock.
+  Future<void> _onColorTap(Color? c) async {
+    if (c == null || AnnivEventColors.template.contains(c)) {
+      _set(_draft.copyWith(colorValue: () => c?.toARGB32()));
+      return;
+    }
+    final argb = c.toARGB32();
+    if (ref.read(colorUnlockedProvider(argb))) {
+      _set(_draft.copyWith(colorValue: () => argb));
+      return;
+    }
+    if (_colorUnlockPendingArgb != null) return;
+
+    setState(() => _colorUnlockPendingArgb = argb);
+    final earned = await ref.read(rewardedAdServiceProvider).showForReward();
+    if (!mounted) return;
+    setState(() => _colorUnlockPendingArgb = null);
+    if (earned) {
+      await ref.read(settingsProvider.notifier).update((s) => s.copyWith(
+          unlockedColorValues: {...s.unlockedColorValues, argb}));
+      if (mounted) _set(_draft.copyWith(colorValue: () => argb));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('広告を再生できませんでした。時間をおいて、もう一度お試しください。'),
+        ),
+      );
+    }
   }
 
   Future<void> _save() async {
@@ -520,30 +560,29 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
         spacing: 12,
         runSpacing: 12,
         children: [
-          for (final c in swatches)
-            GestureDetector(
-              onTap: () => _set(_draft.copyWith(
-                  colorValue: () => c?.toARGB32())),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: c ?? _draft.template.color,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: (_draft.colorValue == null && c == null) ||
-                            (c != null && _draft.colorValue == c.toARGB32())
-                        ? a.ink
-                        : Colors.transparent,
-                    width: 3,
-                  ),
-                ),
-                child: c == null
-                    ? const Icon(Icons.auto_fix_high,
-                        size: 16, color: Colors.white)
-                    : null,
-              ),
-            ),
+          for (final c in swatches) _colorSwatch(c, locked: false),
+        ],
+      ),
+      const SizedBox(height: 14),
+      Row(
+        children: [
+          Text('追加カラー', style: TextStyle(fontSize: 12.5, color: a.sub)),
+          if (!ref.watch(allColorsUnlockedProvider)) ...[
+            const SizedBox(width: 6),
+            Icon(Icons.lock, size: 12, color: a.brand),
+            const SizedBox(width: 2),
+            Text('広告で解放', style: TextStyle(fontSize: 11, color: a.brand)),
+          ],
+        ],
+      ),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          for (final c in AnnivEventColors.extra)
+            _colorSwatch(c,
+                locked: !ref.watch(colorUnlockedProvider(c.toARGB32()))),
         ],
       ),
       const SizedBox(height: 16),
@@ -630,6 +669,63 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
         _set(_draft.copyWith(iconCodePoint: () => cp));
         Navigator.pop(context);
       },
+    );
+  }
+
+  /// One circular swatch in the "背景色" grid. [locked] shows a small ad-lock
+  /// badge (cleared by [_onColorTap] once unlocked); while its own unlock is
+  /// in flight the badge is replaced with a spinner.
+  Widget _colorSwatch(Color? c, {required bool locked}) {
+    final a = context.anniv;
+    final argb = c?.toARGB32();
+    final selected = (_draft.colorValue == null && c == null) ||
+        (argb != null && _draft.colorValue == argb);
+    final pending = argb != null && _colorUnlockPendingArgb == argb;
+    return GestureDetector(
+      onTap: pending ? null : () => _onColorTap(c),
+      child: Container(
+        width: 40,
+        height: 40,
+        clipBehavior: Clip.none,
+        decoration: BoxDecoration(
+          color: c ?? _draft.template.color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? a.ink : Colors.transparent,
+            width: 3,
+          ),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            if (c == null)
+              const Icon(Icons.auto_fix_high, size: 16, color: Colors.white)
+            else if (pending)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
+              ),
+            if (locked && !pending)
+              Positioned(
+                right: -4,
+                bottom: -4,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: a.brand,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: a.surface, width: 1.5),
+                  ),
+                  child: const Icon(Icons.lock, size: 9, color: Colors.white),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

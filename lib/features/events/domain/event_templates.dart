@@ -132,6 +132,35 @@ class AnnivEventColors {
         EventType.oshi => oshi,
         EventType.custom => custom,
       };
+
+  /// The six template colours above — always free, no ad required.
+  static const List<Color> template = [
+    birthday,
+    anniversary,
+    exam,
+    trip,
+    oshi,
+    custom,
+  ];
+
+  /// Extra background colours a user can pick to override an event's template
+  /// colour ([Event.colorValue]), one rewarded-ad view each
+  /// (`AppSettings.unlockedColorValues`), same mechanic as [EventIcons].
+  /// Chosen to sit clearly apart in hue/lightness from [template].
+  static const List<Color> extra = [
+    Color(0xFFF0C94A), // レモン
+    Color(0xFF9CC24D), // ライム
+    Color(0xFF4FC08D), // ミント
+    Color(0xFF3FB6BE), // ターコイズ
+    Color(0xFF4E9BD9), // スカイ
+    Color(0xFF6265C7), // インディゴ
+    Color(0xFFD65BA8), // マゼンタ
+    Color(0xFFE06B85), // ローズ
+    Color(0xFFC97452), // テラコッタ
+    Color(0xFF8B9A52), // オリーブ
+    Color(0xFF6C7A99), // スレート
+    Color(0xFF54525C), // チャコール
+  ];
 }
 
 extension EventVisuals on Event {
