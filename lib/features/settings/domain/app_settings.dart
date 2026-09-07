@@ -28,6 +28,7 @@ class AppSettings {
     this.adRemoved = false,
     this.unlockedIconCodePoints = const {},
     this.unlockedColorValues = const {},
+    this.unlockedEmoji = const {},
     this.onboardingDone = false,
   });
 
@@ -48,6 +49,12 @@ class AppSettings {
   /// colour. See `AnnivEventColors.extra`.
   final Set<int> unlockedColorValues;
 
+  /// Colour-emoji icons (see `EventIcons.colored`) the user has individually
+  /// unlocked by watching a rewarded ad for that emoji. Keyed by the emoji
+  /// string itself (not a codepoint — several are multi-codepoint sequences,
+  /// e.g. flags and the family emoji).
+  final Set<String> unlockedEmoji;
+
   final bool onboardingDone;
 
   static const AppSettings defaults = AppSettings();
@@ -60,6 +67,7 @@ class AppSettings {
     bool? adRemoved,
     Set<int>? unlockedIconCodePoints,
     Set<int>? unlockedColorValues,
+    Set<String>? unlockedEmoji,
     bool? onboardingDone,
   }) {
     return AppSettings(
@@ -71,6 +79,7 @@ class AppSettings {
       unlockedIconCodePoints:
           unlockedIconCodePoints ?? this.unlockedIconCodePoints,
       unlockedColorValues: unlockedColorValues ?? this.unlockedColorValues,
+      unlockedEmoji: unlockedEmoji ?? this.unlockedEmoji,
       onboardingDone: onboardingDone ?? this.onboardingDone,
     );
   }
@@ -83,6 +92,7 @@ class AppSettings {
         'adRemoved': adRemoved,
         'unlockedIconCodePoints': unlockedIconCodePoints.toList(),
         'unlockedColorValues': unlockedColorValues.toList(),
+        'unlockedEmoji': unlockedEmoji.toList(),
         'onboardingDone': onboardingDone,
       };
 
@@ -104,6 +114,10 @@ class AppSettings {
                 ?.map((e) => e as int)
                 .toSet() ??
             const {},
+        unlockedEmoji: (json['unlockedEmoji'] as List?)
+                ?.map((e) => e as String)
+                .toSet() ??
+            const {},
         onboardingDone: json['onboardingDone'] as bool? ?? false,
       );
 
@@ -117,6 +131,7 @@ class AppSettings {
       other.adRemoved == adRemoved &&
       setEquals(other.unlockedIconCodePoints, unlockedIconCodePoints) &&
       setEquals(other.unlockedColorValues, unlockedColorValues) &&
+      setEquals(other.unlockedEmoji, unlockedEmoji) &&
       other.onboardingDone == onboardingDone;
 
   @override
@@ -128,5 +143,6 @@ class AppSettings {
       adRemoved,
       Object.hashAllUnordered(unlockedIconCodePoints),
       Object.hashAllUnordered(unlockedColorValues),
+      Object.hashAllUnordered(unlockedEmoji),
       onboardingDone);
 }

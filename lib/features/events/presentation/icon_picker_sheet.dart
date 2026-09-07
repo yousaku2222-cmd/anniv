@@ -5,16 +5,19 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../ads/application/ad_providers.dart';
 import '../../settings/application/settings_providers.dart';
+import '../../settings/domain/app_settings.dart';
 import '../domain/event_icons.dart';
+import '../domain/event_templates.dart';
 
 /// Opens the icon picker as a bottom sheet. [onPick] receives the chosen
-/// codepoint, or null for "back to template icon", and is responsible for
-/// applying it (the sheet does not close itself).
+/// selection ([IconSelection.template] for "back to template icon"), and is
+/// responsible for applying it (the sheet does not close itself).
 Future<void> showIconPicker(
   BuildContext context, {
   required Color color,
-  required int? selected,
-  required ValueChanged<int?> onPick,
+  required int? selectedIconCodePoint,
+  required String? selectedEmoji,
+  required ValueChanged<IconSelection> onPick,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -25,28 +28,31 @@ Future<void> showIconPicker(
     ),
     builder: (_) => IconPickerSheet(
       color: color,
-      selected: selected,
+      selectedIconCodePoint: selectedIconCodePoint,
+      selectedEmoji: selectedEmoji,
       onPick: onPick,
     ),
   );
 }
 
-/// Icon picker with a シンプル/ライン tab. Applying a custom icon is gated behind
-/// one rewarded-ad view per icon (`AppSettings.unlockedIconCodePoints`); once an
-/// icon is unlocked it is free forever. "テンプレートに戻す" is always free.
+/// Icon picker with シンプル/ライン/カラー tabs. Applying a custom icon or emoji is
+/// gated behind one rewarded-ad view per icon (`AppSettings.unlockedIconCodePoints`
+/// / `unlockedEmoji`); once unlocked it's free forever. "テンプレートに戻す" is
+/// always free.
 class IconPickerSheet extends ConsumerStatefulWidget {
   const IconPickerSheet({
     super.key,
     required this.color,
-    required this.selected,
+    required this.selectedIconCodePoint,
+    required this.selectedEmoji,
     required this.onPick,
   });
 
   final Color color;
-  final int? selected;
+  final int? selectedIconCodePoint;
+  final String? selectedEmoji;
 
-  /// null = "back to template icon".
-  final ValueChanged<int?> onPick;
+  final ValueChanged<IconSelection> onPick;
 
   @override
   ConsumerState<IconPickerSheet> createState() => _IconPickerSheetState();
@@ -59,24 +65,46 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
   @override
   void initState() {
     super.initState();
-    if (!ref.read(allIconsUnlockedProvider)) {
+    if (!ref.read(allIconsUnlockedProvider) || !ref.read(allEmojiUnlockedProvider)) {
       ref.read(rewardedAdServiceProvider).preload();
     }
   }
 
   Future<void> _onIconTap(int codePoint) async {
     if (ref.read(iconUnlockedProvider(codePoint))) {
-      widget.onPick(codePoint);
+      widget.onPick(IconSelection.icon(codePoint));
       return;
     }
+    await _unlock(
+      unlock: (s) => s.copyWith(
+          unlockedIconCodePoints: {...s.unlockedIconCodePoints, codePoint}),
+      onUnlocked: () => widget.onPick(IconSelection.icon(codePoint)),
+    );
+  }
+
+  Future<void> _onEmojiTap(String emoji) async {
+    if (ref.read(emojiUnlockedProvider(emoji))) {
+      widget.onPick(IconSelection.emoji(emoji));
+      return;
+    }
+    await _unlock(
+      unlock: (s) => s.copyWith(unlockedEmoji: {...s.unlockedEmoji, emoji}),
+      onUnlocked: () => widget.onPick(IconSelection.emoji(emoji)),
+    );
+  }
+
+  /// Shared ad-watch-then-unlock flow for both icons and emoji.
+  Future<void> _unlock({
+    required AppSettings Function(AppSettings settings) unlock,
+    required VoidCallback onUnlocked,
+  }) async {
     setState(() => _busy = true);
     final earned = await ref.read(rewardedAdServiceProvider).showForReward();
     if (!mounted) return;
     setState(() => _busy = false);
     if (earned) {
-      await ref.read(settingsProvider.notifier).update((s) => s.copyWith(
-          unlockedIconCodePoints: {...s.unlockedIconCodePoints, codePoint}));
-      if (mounted) widget.onPick(codePoint);
+      await ref.read(settingsProvider.notifier).update((s) => unlock(s));
+      if (mounted) onUnlocked();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -89,8 +117,14 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
   @override
   Widget build(BuildContext context) {
     final a = context.anniv;
-    final allUnlocked = ref.watch(allIconsUnlockedProvider);
-    final groups = EventIcons.groupsFor(_style);
+    final isColorStyle = _style == IconStyle.color;
+    final allUnlocked = isColorStyle
+        ? ref.watch(allEmojiUnlockedProvider)
+        : ref.watch(allIconsUnlockedProvider);
+    final List<EventIconGroup> iconGroups =
+        isColorStyle ? const [] : EventIcons.groupsFor(_style);
+    final List<EventEmojiGroup> emojiGroups =
+        isColorStyle ? EventIcons.colored : const [];
 
     return SafeArea(
       top: false,
@@ -120,7 +154,8 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
                               color: a.ink)),
                       const Spacer(),
                       TextButton(
-                        onPressed: () => widget.onPick(null),
+                        onPressed: () =>
+                            widget.onPick(const IconSelection.template()),
                         child: const Text('テンプレートに戻す'),
                       ),
                     ],
@@ -128,14 +163,14 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                  child: SegmentedToggle(
+                  child: SegmentedToggle<IconStyle>(
                     options: const {
-                      false: 'シンプル',
-                      true: 'ライン',
+                      IconStyle.filled: 'シンプル',
+                      IconStyle.outline: 'ライン',
+                      IconStyle.color: 'カラー',
                     },
-                    value: _style == IconStyle.outline,
-                    onChanged: (line) => setState(() =>
-                        _style = line ? IconStyle.outline : IconStyle.filled),
+                    value: _style,
+                    onChanged: (s) => setState(() => _style = s),
                   ),
                 ),
                 if (!allUnlocked)
@@ -165,35 +200,67 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
                     children: [
-                      for (final group in groups) ...[
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 10),
-                          child: Text(
-                            group.label,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: a.sub,
+                      if (isColorStyle)
+                        for (final group in emojiGroups) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 10),
+                            child: Text(
+                              group.label,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: a.sub,
+                              ),
                             ),
                           ),
-                        ),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: [
-                            for (final icon in group.icons)
-                              _IconCell(
-                                icon: icon,
-                                color: widget.color,
-                                selected: icon.codePoint == widget.selected,
-                                locked: !ref
-                                    .watch(iconUnlockedProvider(icon.codePoint)),
-                                onTap: () => _onIconTap(icon.codePoint),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              for (final emoji in group.emojis)
+                                _EmojiCell(
+                                  emoji: emoji,
+                                  color: widget.color,
+                                  selected: emoji == widget.selectedEmoji,
+                                  locked: !ref
+                                      .watch(emojiUnlockedProvider(emoji)),
+                                  onTap: () => _onEmojiTap(emoji),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ]
+                      else
+                        for (final group in iconGroups) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 10),
+                            child: Text(
+                              group.label,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: a.sub,
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
+                            ),
+                          ),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              for (final icon in group.icons)
+                                _IconCell(
+                                  icon: icon,
+                                  color: widget.color,
+                                  selected: icon.codePoint ==
+                                      widget.selectedIconCodePoint,
+                                  locked: !ref.watch(
+                                      iconUnlockedProvider(icon.codePoint)),
+                                  onTap: () => _onIconTap(icon.codePoint),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                     ],
                   ),
                 ),
@@ -211,6 +278,25 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
       ),
     );
   }
+}
+
+/// Shared lock-badge chrome for [_IconCell] / [_EmojiCell].
+Widget _lockBadge(BuildContext context) {
+  final a = context.anniv;
+  return Positioned(
+    right: -4,
+    bottom: -4,
+    child: Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        color: a.brand,
+        shape: BoxShape.circle,
+        border: Border.all(color: a.surface, width: 1.5),
+      ),
+      child: const Icon(Icons.lock, size: 10, color: Colors.white),
+    ),
+  );
 }
 
 class _IconCell extends StatelessWidget {
@@ -256,21 +342,57 @@ class _IconCell extends StatelessWidget {
                   ? color
                   : (locked ? a.ink.withValues(alpha: 0.45) : a.ink),
             ),
-            if (locked)
-              Positioned(
-                right: -4,
-                bottom: -4,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: a.brand,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: a.surface, width: 1.5),
-                  ),
-                  child: const Icon(Icons.lock, size: 10, color: Colors.white),
-                ),
-              ),
+            if (locked) _lockBadge(context),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Same tile chrome as [_IconCell], but for a colour-emoji glyph — no ink
+/// tint on selection since the emoji already carries its own colour.
+class _EmojiCell extends StatelessWidget {
+  const _EmojiCell({
+    required this.emoji,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+    this.locked = false,
+  });
+
+  final String emoji;
+  final Color color;
+  final bool selected;
+  final bool locked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = context.anniv;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 52,
+        height: 52,
+        clipBehavior: Clip.none,
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.16) : a.chipBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? color : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Opacity(
+              opacity: locked ? 0.45 : 1,
+              child: Text(emoji, style: const TextStyle(fontSize: 24)),
+            ),
+            if (locked) _lockBadge(context),
           ],
         ),
       ),

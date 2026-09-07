@@ -38,6 +38,7 @@ class HiddenEventsScreen extends ConsumerWidget {
                     children: [
                       AnnivIconChip(
                           icon: event.displayIcon,
+                          emoji: event.displayIconEmoji,
                           color: event.displayColor,
                           size: 36),
                       const SizedBox(width: 12),

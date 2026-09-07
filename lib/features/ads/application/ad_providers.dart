@@ -51,3 +51,18 @@ final allColorsUnlockedProvider = Provider<bool>((ref) {
   return AnnivEventColors.extra
       .every((c) => s.unlockedColorValues.contains(c.toARGB32()));
 });
+
+/// Whether one specific colour-emoji icon (see `EventIcons.colored`) can be
+/// applied without watching an ad — either already unlocked or "remove ads".
+final emojiUnlockedProvider = Provider.family<bool, String>((ref, emoji) {
+  final s = ref.watch(settingsProvider);
+  return s.adRemoved || s.unlockedEmoji.contains(emoji);
+});
+
+/// Whether every emoji in `EventIcons.colored` has already been unlocked (so
+/// the picker's "カラー" tab never needs to show a "watch an ad" prompt).
+final allEmojiUnlockedProvider = Provider<bool>((ref) {
+  final s = ref.watch(settingsProvider);
+  if (s.adRemoved) return true;
+  return EventIcons.allEmoji.every((e) => s.unlockedEmoji.contains(e));
+});

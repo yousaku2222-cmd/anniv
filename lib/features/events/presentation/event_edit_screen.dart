@@ -535,7 +535,10 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
                     style: const TextStyle(
                         color: Colors.white, fontWeight: FontWeight.w700)),
                 const Spacer(),
-                Icon(_draft.displayIcon, color: Colors.white, size: 26),
+                _draft.displayIconEmoji != null
+                    ? Text(_draft.displayIconEmoji!,
+                        style: const TextStyle(fontSize: 22))
+                    : Icon(_draft.displayIcon, color: Colors.white, size: 26),
               ],
             ),
             const SizedBox(height: 6),
@@ -611,20 +614,25 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
           child: Row(
             children: [
               AnnivIconChip(
-                  icon: _draft.displayIcon, color: previewColor, size: 40),
+                  icon: _draft.displayIcon,
+                  emoji: _draft.displayIconEmoji,
+                  color: previewColor,
+                  size: 40),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  _draft.iconCodePoint == null
-                      ? 'テンプレートのアイコン'
-                      : 'カスタムアイコン',
+                  _draft.iconEmoji != null
+                      ? 'カラーアイコン'
+                      : (_draft.iconCodePoint == null
+                          ? 'テンプレートのアイコン'
+                          : 'カスタムアイコン'),
                   style: TextStyle(color: a.ink, fontWeight: FontWeight.w700),
                 ),
               ),
-              if (_draft.iconCodePoint != null)
+              if (_draft.iconCodePoint != null || _draft.iconEmoji != null)
                 TextButton(
-                  onPressed: () =>
-                      _set(_draft.copyWith(iconCodePoint: () => null)),
+                  onPressed: () => _set(_draft.copyWith(
+                      iconCodePoint: () => null, iconEmoji: () => null)),
                   child: const Text('リセット'),
                 ),
               Icon(Icons.chevron_right_rounded, color: a.faint),
@@ -664,9 +672,12 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
     await showIconPicker(
       context,
       color: _draft.displayColor,
-      selected: _draft.iconCodePoint,
-      onPick: (cp) {
-        _set(_draft.copyWith(iconCodePoint: () => cp));
+      selectedIconCodePoint: _draft.iconCodePoint,
+      selectedEmoji: _draft.iconEmoji,
+      onPick: (sel) {
+        _set(_draft.copyWith(
+            iconCodePoint: () => sel.iconCodePoint,
+            iconEmoji: () => sel.emoji));
         Navigator.pop(context);
       },
     );

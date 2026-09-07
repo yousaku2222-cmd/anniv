@@ -167,11 +167,36 @@ extension EventVisuals on Event {
   EventTemplate get template => EventTemplate.forType(type);
 
   /// A user-picked icon ([iconCodePoint]) wins over the template icon. Unknown
-  /// codepoints (e.g. from an older backup) fall back to the template.
+  /// codepoints (e.g. from an older backup) fall back to the template. Not
+  /// meaningful when [displayIconEmoji] is set — check that first.
   IconData get displayIcon => iconCodePoint == null
       ? template.icon
       : (EventIcons.byCodePoint(iconCodePoint!) ?? template.icon);
 
+  /// A user-picked colour-emoji icon ([iconEmoji], see `EventIcons.colored`).
+  /// When non-null it wins over [displayIcon] entirely wherever the icon is
+  /// rendered.
+  String? get displayIconEmoji => iconEmoji;
+
   Color get displayColor =>
       colorValue != null ? Color(colorValue!) : template.color;
+}
+
+/// What the icon picker handed back: a Material icon codepoint, a colour
+/// emoji, or neither ("テンプレートに戻す" — fall back to the template icon).
+/// Exactly one of [iconCodePoint] / [emoji] is ever non-null.
+@immutable
+class IconSelection {
+  const IconSelection.icon(int codePoint)
+      : iconCodePoint = codePoint,
+        emoji = null;
+  const IconSelection.emoji(String value)
+      : iconCodePoint = null,
+        emoji = value;
+  const IconSelection.template()
+      : iconCodePoint = null,
+        emoji = null;
+
+  final int? iconCodePoint;
+  final String? emoji;
 }

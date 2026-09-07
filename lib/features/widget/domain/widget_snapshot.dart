@@ -14,6 +14,7 @@ class WidgetSnapshot {
     required this.unit,
     required this.caption,
     required this.iconCodePoint,
+    this.iconEmoji = '',
     required this.colorValue,
   });
 
@@ -25,7 +26,12 @@ class WidgetSnapshot {
 
   /// [Icons.*] codepoint (MaterialIcons font, no package) for the event's
   /// [EventVisuals.displayIcon] — the native widgets bundle the same font.
+  /// Ignored when [iconEmoji] is non-empty.
   final int iconCodePoint;
+
+  /// A colour-emoji icon (see `EventIcons.colored`), or `''` for none. Wins
+  /// over [iconCodePoint] on the native side too.
+  final String iconEmoji;
 
   /// ARGB int matching [EventVisuals.displayColor], i.e. `Color.toARGB32()`.
   final int colorValue;
@@ -47,6 +53,7 @@ class WidgetSnapshot {
         'anniv_unit': unit,
         'anniv_caption': caption,
         'anniv_icon_codepoint': iconCodePoint,
+        'anniv_icon_emoji': iconEmoji,
         'anniv_color': colorValue,
       };
 }
@@ -73,6 +80,7 @@ class WidgetSnapshotBuilder {
     final date = Countdown.nextOccurrence(best, today);
     final caption = '${date.month}月${date.day}日';
     final iconCodePoint = best.displayIcon.codePoint;
+    final iconEmoji = best.displayIconEmoji ?? '';
     final colorValue = best.displayColor.toARGB32();
     if (bestLeft == 0) {
       return WidgetSnapshot(
@@ -82,6 +90,7 @@ class WidgetSnapshotBuilder {
         unit: '',
         caption: caption,
         iconCodePoint: iconCodePoint,
+        iconEmoji: iconEmoji,
         colorValue: colorValue,
       );
     }
@@ -92,6 +101,7 @@ class WidgetSnapshotBuilder {
       unit: '日',
       caption: '$caption まで',
       iconCodePoint: iconCodePoint,
+      iconEmoji: iconEmoji,
       colorValue: colorValue,
     );
   }

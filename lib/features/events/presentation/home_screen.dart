@@ -276,16 +276,19 @@ class _EventCard extends ConsumerWidget {
                       onLongPress: () => showIconPicker(
                         context,
                         color: color,
-                        selected: event.iconCodePoint,
-                        onPick: (cp) {
-                          ref
-                              .read(eventsProvider.notifier)
-                              .save(event.copyWith(iconCodePoint: () => cp));
+                        selectedIconCodePoint: event.iconCodePoint,
+                        selectedEmoji: event.iconEmoji,
+                        onPick: (sel) {
+                          ref.read(eventsProvider.notifier).save(event.copyWith(
+                              iconCodePoint: () => sel.iconCodePoint,
+                              iconEmoji: () => sel.emoji));
                           Navigator.pop(context);
                         },
                       ),
-                      child:
-                          AnnivIconChip(icon: event.displayIcon, color: color),
+                      child: AnnivIconChip(
+                          icon: event.displayIcon,
+                          emoji: event.displayIconEmoji,
+                          color: color),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

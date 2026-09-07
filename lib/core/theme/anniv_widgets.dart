@@ -10,6 +10,7 @@ class AnnivIconChip extends StatelessWidget {
     required this.color,
     this.size = AppSpacing.iconChip,
     this.filled = false,
+    this.emoji,
   });
 
   final IconData icon;
@@ -18,6 +19,11 @@ class AnnivIconChip extends StatelessWidget {
 
   /// When true the tile is a solid [color]; otherwise a soft tint of it.
   final bool filled;
+
+  /// A colour-emoji glyph (see `EventIcons.colored`) that wins over [icon]
+  /// when set — real emoji already carry their own colour, so it's drawn as
+  /// plain text instead of a tinted [Icon].
+  final String? emoji;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +34,14 @@ class AnnivIconChip extends StatelessWidget {
         color: filled ? color : color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(size >= 44 ? AppRadius.iconChip : 12),
       ),
-      child: Icon(
-        icon,
-        size: size * 0.5,
-        color: filled ? Colors.white : color,
+      child: Center(
+        child: emoji != null
+            ? Text(emoji!, style: TextStyle(fontSize: size * 0.5))
+            : Icon(
+                icon,
+                size: size * 0.5,
+                color: filled ? Colors.white : color,
+              ),
       ),
     );
   }
@@ -229,8 +239,8 @@ class AnnivCard extends StatelessWidget {
   }
 }
 
-/// Two/three-way pill toggle (e.g. 単発/毎年繰り返す, シンプル/ライン).
-class SegmentedToggle extends StatelessWidget {
+/// Two/three-way pill toggle (e.g. 単発/毎年繰り返す, シンプル/ライン/カラー).
+class SegmentedToggle<T> extends StatelessWidget {
   const SegmentedToggle({
     super.key,
     required this.options,
@@ -238,9 +248,9 @@ class SegmentedToggle extends StatelessWidget {
     required this.onChanged,
   });
 
-  final Map<bool, String> options;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  final Map<T, String> options;
+  final T value;
+  final ValueChanged<T> onChanged;
 
   @override
   Widget build(BuildContext context) {

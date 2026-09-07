@@ -41,6 +41,10 @@ struct AnnivEntry: TimelineEntry {
     let unit: String
     let caption: String
     let iconCodePoint: Int
+    /// Set (non-empty) when the event uses a colour-emoji icon instead of a
+    /// Material glyph — see `EventIcons.colored` on the Flutter side. Wins
+    /// over [iconCodePoint] when present.
+    let iconEmoji: String
     let colorARGB: Int
 
     static let placeholder = AnnivEntry(
@@ -51,6 +55,7 @@ struct AnnivEntry: TimelineEntry {
         unit: "日",
         caption: "9月3日 まで",
         iconCodePoint: 0xef0f, // Icons.cake_outlined
+        iconEmoji: "",
         colorARGB: 0xFFF08FA8 // AnnivEventColors.birthday
     )
 }
@@ -85,6 +90,7 @@ struct AnnivProvider: TimelineProvider {
             ?? defaultIconCodePoint
         let colorARGB = (store?.object(forKey: "anniv_color") as? NSNumber)?.intValue
             ?? defaultColorARGB
+        let iconEmoji = store?.string(forKey: "anniv_icon_emoji") ?? ""
         return AnnivEntry(
             date: Date(),
             isEmpty: !hasData || flaggedEmpty,
@@ -93,6 +99,7 @@ struct AnnivProvider: TimelineProvider {
             unit: store?.string(forKey: "anniv_unit") ?? "",
             caption: store?.string(forKey: "anniv_caption") ?? "Anniv を開いて登録",
             iconCodePoint: iconCodePoint,
+            iconEmoji: iconEmoji,
             colorARGB: colorARGB
         )
     }
@@ -133,16 +140,25 @@ struct AnnivWidgetEntryView: View {
             )
     }
 
-    /// The event's own colour + Material icon glyph (matches the icon chip
-    /// shown next to the event in the app's own list/detail screens).
+    /// The event's own colour + icon glyph (matches the icon chip shown next
+    /// to the event in the app's own list/detail screens). A colour-emoji
+    /// icon (`entry.iconEmoji`) wins over the Material glyph when set — it
+    /// renders in the system's own emoji font, not `MaterialIcons-Regular`.
     private var eventIconChip: some View {
         RoundedRectangle(cornerRadius: 6, style: .continuous)
             .fill(color(fromARGB: entry.colorARGB))
             .frame(width: 20, height: 20)
             .overlay(
-                Text(UnicodeScalar(entry.iconCodePoint).map { String(Character($0)) } ?? "")
-                    .font(.custom("MaterialIcons-Regular", size: 12))
-                    .foregroundColor(.white)
+                Group {
+                    if entry.iconEmoji.isEmpty {
+                        Text(UnicodeScalar(entry.iconCodePoint).map { String(Character($0)) } ?? "")
+                            .font(.custom("MaterialIcons-Regular", size: 12))
+                            .foregroundColor(.white)
+                    } else {
+                        Text(entry.iconEmoji)
+                            .font(.system(size: 12))
+                    }
+                }
             )
     }
 
@@ -274,10 +290,14 @@ struct AnnivWidget: Widget {
     AnnivEntry.placeholder
     AnnivEntry(
         date: Date(), isEmpty: false, title: "沖縄旅行", count: "当日", unit: "", caption: "12月30日",
-        iconCodePoint: 0xe299, colorARGB: 0xFF43B582
+        iconCodePoint: 0xe299, iconEmoji: "", colorARGB: 0xFF43B582
+    )
+    AnnivEntry(
+        date: Date(), isEmpty: false, title: "推しの誕生日", count: "3", unit: "日", caption: "9月10日 まで",
+        iconCodePoint: 0, iconEmoji: "🎂", colorARGB: 0xFFF08FA8
     )
     AnnivEntry(
         date: Date(), isEmpty: true, title: "記念日を追加", count: "—", unit: "",
-        caption: "Anniv を開いて登録", iconCodePoint: defaultIconCodePoint, colorARGB: defaultColorARGB
+        caption: "Anniv を開いて登録", iconCodePoint: defaultIconCodePoint, iconEmoji: "", colorARGB: defaultColorARGB
     )
 }

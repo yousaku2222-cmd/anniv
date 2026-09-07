@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Which visual style the icon picker is showing.
-enum IconStyle { filled, outline }
+enum IconStyle { filled, outline, color }
 
 /// A named set of icons for one section of the picker.
 @immutable
@@ -9,6 +9,14 @@ class EventIconGroup {
   const EventIconGroup(this.label, this.icons);
   final String label;
   final List<IconData> icons;
+}
+
+/// A named set of colour emoji for one section of the [IconStyle.color] tab.
+@immutable
+class EventEmojiGroup {
+  const EventEmojiGroup(this.label, this.emojis);
+  final String label;
+  final List<String> emojis;
 }
 
 /// Curated icons a user can pick to override an event's template icon
@@ -171,6 +179,38 @@ class EventIcons {
 
   static List<EventIconGroup> groupsFor(IconStyle style) =>
       style == IconStyle.filled ? filled : outline;
+
+  /// Colour-emoji catalog for the picker's "カラー" tab — same section
+  /// headings as [filled]/[outline], real Unicode emoji instead of Material
+  /// glyphs. Rendered as plain [Text], so no per-icon tint is needed — each
+  /// glyph already carries its own colour.
+  static const List<EventEmojiGroup> colored = [
+    EventEmojiGroup('記念日・お祝い', [
+      '💖', '🎂', '🎉', '🎁', '🎟️', '🌸', '🏆', '💎', '✨', '🌟',
+    ]),
+    EventEmojiGroup('人・くらし', [
+      '💗', '🧑', '👨‍👩‍👧‍👦', '👶', '🍼', '🤰', '🐾', '🐶', '🐱', '🏡', '🎓', '💼', '🐷',
+    ]),
+    EventEmojiGroup('おでかけ', [
+      '✈️', '🚂', '🚗', '🚌', '⛵', '🏖️', '🥾', '🏨', '🍽️', '☕',
+      '🇯🇵', '🇺🇸', '🇰🇷', '🇫🇷', '🇮🇹', '🇹🇼', '🇨🇳',
+    ]),
+    EventEmojiGroup('趣味・推し活', [
+      '🎵', '🎤', '🎧', '🎮', '🎬', '🎭', '📸', '🎨', '⚽', '📖',
+    ]),
+    EventEmojiGroup('季節・自然', [
+      '🌞', '🌝', '❄️', '🔥', '🌳', '💧', '☔', '☁️', '⛈️', '♨️', '🌷', '🌻',
+    ]),
+    EventEmojiGroup('しるし', [
+      '✅', '🚩', '📌', '🔖', '⏰', '📅', '❗', '⚠️', 'ℹ️', '⏱️',
+    ]),
+  ];
+
+  /// Every emoji in [colored], flattened — used to check "everything in this
+  /// catalog is unlocked" the same way [allCodePoints] does for icons.
+  static List<String> get allEmoji => [
+        for (final g in colored) ...g.emojis,
+      ];
 
   static final Map<int, IconData> _byCode = {
     for (final list in [filled, outline])

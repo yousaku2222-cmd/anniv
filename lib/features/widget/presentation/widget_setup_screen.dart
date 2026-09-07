@@ -199,7 +199,11 @@ class _WidgetRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          AnnivIconChip(icon: event.displayIcon, color: color, size: 36),
+          AnnivIconChip(
+              icon: event.displayIcon,
+              emoji: event.displayIconEmoji,
+              color: color,
+              size: 36),
           const SizedBox(width: 10),
           Expanded(
             child: Column(

@@ -35,13 +35,18 @@ class AnnivWidgetProvider : HomeWidgetProvider() {
         }
 
     /**
-     * Renders the event's colour + Material icon glyph as a bitmap in our own
-     * process. RemoteViews are inflated by the launcher's process, which does
-     * not reliably resolve a custom `android:fontFamily` bundled in our APK
+     * Renders the event's colour + icon glyph as a bitmap in our own process.
+     * RemoteViews are inflated by the launcher's process, which does not
+     * reliably resolve a custom `android:fontFamily` bundled in our APK
      * (observed as a "tofu" placeholder box on-device) — baking pixels here
      * and handing the launcher a plain bitmap sidesteps that entirely.
+     *
+     * When [emoji] is non-empty (a colour-emoji icon — see `EventIcons.colored`
+     * on the Flutter side) it's drawn with the system's default typeface,
+     * which resolves to the device's colour-emoji font; [codePoint] and the
+     * bundled Material Icons font are only used when [emoji] is empty.
      */
-    private fun renderIconChip(context: Context, codePoint: Int, color: Int): Bitmap {
+    private fun renderIconChip(context: Context, codePoint: Int, emoji: String, color: Int): Bitmap {
         val density = context.resources.displayMetrics.density
         // 2x oversample the 20dp layout slot so the glyph stays crisp.
         val sizePx = (20 * density * 2).roundToInt()
@@ -56,9 +61,9 @@ class AnnivWidgetProvider : HomeWidgetProvider() {
             this.color = android.graphics.Color.WHITE
             textSize = sizePx * 0.6f
             textAlign = Paint.Align.CENTER
-            typeface = iconTypeface(context)
+            typeface = if (emoji.isEmpty()) iconTypeface(context) else Typeface.DEFAULT
         }
-        val glyph = String(Character.toChars(codePoint))
+        val glyph = emoji.ifEmpty { String(Character.toChars(codePoint)) }
         val textY = sizePx / 2f - (glyphPaint.descent() + glyphPaint.ascent()) / 2f
         canvas.drawText(glyph, sizePx / 2f, textY, glyphPaint)
 
@@ -86,6 +91,7 @@ class AnnivWidgetProvider : HomeWidgetProvider() {
                 val caption = widgetData.getString("anniv_caption", null) ?: ""
                 // Defaults mirror WidgetSnapshot.none (Icons.auto_awesome_outlined, Anniv brand).
                 val iconCodePoint = readInt(widgetData, "anniv_icon_codepoint", 0xeea9)
+                val iconEmoji = widgetData.getString("anniv_icon_emoji", "") ?: ""
                 val color = readInt(widgetData, "anniv_color", 0xFFE85D43.toInt())
 
                 setTextViewText(R.id.anniv_widget_title, title)
@@ -93,7 +99,7 @@ class AnnivWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.anniv_widget_caption, caption)
                 setImageViewBitmap(
                     R.id.anniv_widget_icon,
-                    renderIconChip(context, iconCodePoint, color),
+                    renderIconChip(context, iconCodePoint, iconEmoji, color),
                 )
                 setTextColor(R.id.anniv_widget_count, color)
 

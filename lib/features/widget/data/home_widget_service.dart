@@ -37,6 +37,8 @@ class AppHomeWidgetService implements HomeWidgetService {
       await HomeWidget.saveWidgetData<String>('anniv_caption', snapshot.caption);
       await HomeWidget.saveWidgetData<int>(
           'anniv_icon_codepoint', snapshot.iconCodePoint);
+      await HomeWidget.saveWidgetData<String>(
+          'anniv_icon_emoji', snapshot.iconEmoji);
       await HomeWidget.saveWidgetData<int>('anniv_color', snapshot.colorValue);
       await HomeWidget.updateWidget(
         androidName: androidProvider,
