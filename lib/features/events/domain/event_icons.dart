@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/anniv_icons.dart';
+
 /// Which visual style the icon picker is showing.
-enum IconStyle { filled, outline, color }
+enum IconStyle { filled, outline, motion, color }
 
 /// A named set of icons for one section of the picker.
 @immutable
@@ -177,8 +179,38 @@ class EventIcons {
     ]),
   ];
 
-  static List<EventIconGroup> groupsFor(IconStyle style) =>
-      style == IconStyle.filled ? filled : outline;
+  /// Curated icons for the picker's "動く" tab — rendered with a punchier
+  /// wiggle+pop loop ([MotionIconChip]) instead of the app-wide ambient
+  /// breathing pulse, since being visibly animated is the point of picking
+  /// one. Kept distinct from [filled]/[outline] (no shared codepoints) so
+  /// [isMotion] can tell a "動く" pick apart from a regular one.
+  static const List<EventIconGroup> motion = [
+    EventIconGroup('アニメーション', [
+      AnnivIcons.rocket,
+      AnnivIcons.sparkle,
+      AnnivIcons.flame,
+      AnnivIcons.smile,
+      AnnivIcons.lantern,
+      AnnivIcons.ticket,
+      AnnivIcons.bolt,
+      AnnivIcons.swirl,
+      AnnivIcons.stars,
+      AnnivIcons.toast,
+    ]),
+  ];
+
+  static List<EventIconGroup> groupsFor(IconStyle style) {
+    switch (style) {
+      case IconStyle.filled:
+        return filled;
+      case IconStyle.outline:
+        return outline;
+      case IconStyle.motion:
+        return motion;
+      case IconStyle.color:
+        return const [];
+    }
+  }
 
   /// Colour-emoji catalog for the picker's "カラー" tab — same section
   /// headings as [filled]/[outline], real Unicode emoji instead of Material
@@ -213,7 +245,7 @@ class EventIcons {
       ];
 
   static final Map<int, IconData> _byCode = {
-    for (final list in [filled, outline])
+    for (final list in [filled, outline, motion])
       for (final g in list)
         for (final i in g.icons) i.codePoint: i,
   };
@@ -223,6 +255,14 @@ class EventIcons {
   /// template icon.
   static IconData? byCodePoint(int codePoint) => _byCode[codePoint];
 
-  /// Every codepoint in the curated catalog (filled + outline combined).
+  /// Every codepoint in the curated catalog (filled + outline + motion).
   static Set<int> get allCodePoints => _byCode.keys.toSet();
+
+  static final Set<int> _motionCodePoints = {
+    for (final g in motion) for (final i in g.icons) i.codePoint,
+  };
+
+  /// Whether [codePoint] was picked from the "動く" tab, i.e. should render
+  /// with [MotionIconChip] instead of the app-wide [BreathingIconChip].
+  static bool isMotion(int codePoint) => _motionCodePoints.contains(codePoint);
 }

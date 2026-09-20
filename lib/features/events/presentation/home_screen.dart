@@ -11,6 +11,7 @@ import '../../ads/presentation/banner_ad_widget.dart';
 import '../../groups/application/group_providers.dart';
 import '../application/event_providers.dart';
 import '../domain/event.dart';
+import '../domain/event_icons.dart';
 import '../domain/event_templates.dart';
 import 'event_presentation.dart';
 import 'icon_picker_sheet.dart';
@@ -285,10 +286,14 @@ class _EventCard extends ConsumerWidget {
                           Navigator.pop(context);
                         },
                       ),
-                      child: AnnivIconChip(
-                          icon: event.displayIcon,
-                          emoji: event.displayIconEmoji,
-                          color: color),
+                      child: event.displayIconEmoji == null &&
+                              EventIcons.isMotion(event.displayIcon.codePoint)
+                          ? MotionIconChip(
+                              icon: event.displayIcon, color: color)
+                          : BreathingIconChip(
+                              icon: event.displayIcon,
+                              emoji: event.displayIconEmoji,
+                              color: color),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

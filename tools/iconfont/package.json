@@ -1,0 +1,13 @@
+{
+  "name": "anniv-iconfont",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "sharp": "^0.34.0",
+    "svg2ttf": "^6.0.3",
+    "svgicons2svgfont": "^13.0.0"
+  },
+  "dependencies": {
+    "fontkit": "^2.0.4"
+  }
+}

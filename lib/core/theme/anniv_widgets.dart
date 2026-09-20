@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'app_tokens.dart';
@@ -42,6 +44,159 @@ class AnnivIconChip extends StatelessWidget {
                 size: size * 0.5,
                 color: filled ? Colors.white : color,
               ),
+      ),
+    );
+  }
+}
+
+/// [AnnivIconChip] with a slow, continuous "breathing" scale pulse.
+///
+/// Each instance starts its loop after a random delay so a list of these
+/// doesn't pulse in unison.
+class BreathingIconChip extends StatefulWidget {
+  const BreathingIconChip({
+    super.key,
+    required this.icon,
+    required this.color,
+    this.size = AppSpacing.iconChip,
+    this.filled = false,
+    this.emoji,
+  });
+
+  final IconData icon;
+  final Color color;
+  final double size;
+  final bool filled;
+  final String? emoji;
+
+  @override
+  State<BreathingIconChip> createState() => _BreathingIconChipState();
+}
+
+class _BreathingIconChipState extends State<BreathingIconChip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  );
+  late final Animation<double> _scale = Tween<double>(begin: 1.0, end: 1.07)
+      .chain(CurveTween(curve: Curves.easeInOut))
+      .animate(_controller);
+
+  @override
+  void initState() {
+    super.initState();
+    // Stagger the start so multiple chips don't breathe in lockstep.
+    Future.delayed(Duration(milliseconds: Random().nextInt(1800)), () {
+      if (mounted) _controller.repeat(reverse: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scale,
+      child: AnnivIconChip(
+        icon: widget.icon,
+        color: widget.color,
+        size: widget.size,
+        filled: widget.filled,
+        emoji: widget.emoji,
+      ),
+    );
+  }
+}
+
+/// Punchier wiggle+pop loop (scale + slight rotation), looping indefinitely.
+/// Used for icons picked from the icon picker's "動く" tab — a clearly
+/// stronger effect than [BreathingIconChip]'s ambient pulse, since being
+/// visibly animated is the point of picking one.
+class MotionWiggle extends StatefulWidget {
+  const MotionWiggle({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<MotionWiggle> createState() => _MotionWiggleState();
+}
+
+class _MotionWiggleState extends State<MotionWiggle>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  );
+  late final Animation<double> _scale = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.18), weight: 1),
+    TweenSequenceItem(tween: Tween(begin: 1.18, end: 1.0), weight: 1),
+  ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  late final Animation<double> _rotation = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween(begin: 0.0, end: -0.06), weight: 1),
+    TweenSequenceItem(tween: Tween(begin: -0.06, end: 0.06), weight: 2),
+    TweenSequenceItem(tween: Tween(begin: 0.06, end: 0.0), weight: 1),
+  ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+  @override
+  void initState() {
+    super.initState();
+    // Stagger the start so multiple icons don't wiggle in lockstep.
+    Future.delayed(Duration(milliseconds: Random().nextInt(1100)), () {
+      if (mounted) _controller.repeat();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) => Transform.rotate(
+        angle: _rotation.value,
+        child: Transform.scale(scale: _scale.value, child: child),
+      ),
+      child: widget.child,
+    );
+  }
+}
+
+/// [AnnivIconChip] wrapped in [MotionWiggle] — for icons picked from the
+/// icon picker's "動く" tab.
+class MotionIconChip extends StatelessWidget {
+  const MotionIconChip({
+    super.key,
+    required this.icon,
+    required this.color,
+    this.size = AppSpacing.iconChip,
+    this.filled = false,
+    this.emoji,
+  });
+
+  final IconData icon;
+  final Color color;
+  final double size;
+  final bool filled;
+  final String? emoji;
+
+  @override
+  Widget build(BuildContext context) {
+    return MotionWiggle(
+      child: AnnivIconChip(
+        icon: icon,
+        color: color,
+        size: size,
+        filled: filled,
+        emoji: emoji,
       ),
     );
   }

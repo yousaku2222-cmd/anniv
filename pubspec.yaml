@@ -145,3 +145,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  fonts:
+    - family: AnnivIcons
+      fonts:
+        - asset: assets/fonts/AnnivIcons.ttf

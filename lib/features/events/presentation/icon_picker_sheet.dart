@@ -167,6 +167,7 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
                     options: const {
                       IconStyle.filled: 'シンプル',
                       IconStyle.outline: 'ライン',
+                      IconStyle.motion: '動く',
                       IconStyle.color: 'カラー',
                     },
                     value: _style,
@@ -255,6 +256,7 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
                                       widget.selectedIconCodePoint,
                                   locked: !ref.watch(
                                       iconUnlockedProvider(icon.codePoint)),
+                                  motion: _style == IconStyle.motion,
                                   onTap: () => _onIconTap(icon.codePoint),
                                 ),
                             ],
@@ -306,17 +308,24 @@ class _IconCell extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.locked = false,
+    this.motion = false,
   });
 
   final IconData icon;
   final Color color;
   final bool selected;
   final bool locked;
+  final bool motion;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final a = context.anniv;
+    final iconColor =
+        selected ? color : (locked ? a.ink.withValues(alpha: 0.45) : a.ink);
+    // Locked cells stay still — the wiggle is a reward for unlocking, not a
+    // preview shown before it.
+    final iconWidget = Icon(icon, size: 24, color: iconColor);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -335,13 +344,7 @@ class _IconCell extends StatelessWidget {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: selected
-                  ? color
-                  : (locked ? a.ink.withValues(alpha: 0.45) : a.ink),
-            ),
+            motion && !locked ? MotionWiggle(child: iconWidget) : iconWidget,
             if (locked) _lockBadge(context),
           ],
         ),
