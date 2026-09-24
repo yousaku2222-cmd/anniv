@@ -8,6 +8,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/time/day_time.dart';
 import '../../ads/application/ad_providers.dart';
+import '../../ads/data/ad_service.dart';
 import '../../ads/presentation/banner_ad_widget.dart';
 import '../../backup/application/backup_controller.dart';
 import '../../backup/domain/backup_codec.dart';
@@ -163,6 +164,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ]),
+          const _PrivacyOptionsGroup(),
         ],
       ),
     );
@@ -249,6 +251,60 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 /// A rounded card wrapping a set of [_Row]s, dividers drawn between them.
+/// Re-entry point into Google's consent form, for users who agreed at first
+/// launch and later want to change or withdraw that. It is its own group
+/// rather than a row inside the app group because [_Group] draws a divider
+/// before every child after the first -- a row that hides itself would leave
+/// that divider behind, so the whole group (spacing included) disappears
+/// outside the regions where consent applies.
+class _PrivacyOptionsGroup extends StatefulWidget {
+  const _PrivacyOptionsGroup();
+
+  @override
+  State<_PrivacyOptionsGroup> createState() => _PrivacyOptionsGroupState();
+}
+
+class _PrivacyOptionsGroupState extends State<_PrivacyOptionsGroup> {
+  late Future<bool> _required;
+
+  @override
+  void initState() {
+    super.initState();
+    _required = isPrivacyOptionsRequired();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _required,
+      builder: (context, snapshot) {
+        if (snapshot.data != true) return const SizedBox.shrink();
+        return Column(
+          children: [
+            const SizedBox(height: 20),
+            _Group(children: [
+              _Row(
+                icon: Icons.tune,
+                title: '広告のプライバシー設定',
+                subtitle: '広告表示に関する同意内容を変更できます',
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  await showPrivacyOptionsForm();
+                  // Withdrawing consent can flip the requirement off, so
+                  // re-read it rather than leave a row that opens nothing.
+                  if (mounted) {
+                    setState(() => _required = isPrivacyOptionsRequired());
+                  }
+                },
+              ),
+            ]),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _Group extends StatelessWidget {
   const _Group({required this.children});
   final List<Widget> children;

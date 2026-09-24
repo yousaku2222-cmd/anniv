@@ -105,3 +105,32 @@ class GoogleAdService implements AdService {
     return completer.future;
   }
 }
+
+/// Whether this user must be offered a way back into the consent form. True
+/// only in regions where consent applies (EEA/UK) and only once the SDK has
+/// resolved that, so the settings entry point stays hidden elsewhere rather
+/// than opening a form that has nothing to show.
+Future<bool> isPrivacyOptionsRequired() async {
+  try {
+    final status =
+        await ConsentInformation.instance.getPrivacyOptionsRequirementStatus();
+    return status == PrivacyOptionsRequirementStatus.required;
+  } catch (e) {
+    debugPrint('Anniv: privacy options status unavailable: $e');
+    return false;
+  }
+}
+
+/// Re-opens Google's consent form so the user can change or withdraw the
+/// choice made at first launch -- GDPR treats consent as revocable at any
+/// time, so the app has to keep a path back to it.
+Future<void> showPrivacyOptionsForm() {
+  final completer = Completer<void>();
+  ConsentForm.showPrivacyOptionsForm((error) {
+    if (error != null) {
+      debugPrint('Anniv: privacy options form error: $error');
+    }
+    if (!completer.isCompleted) completer.complete();
+  });
+  return completer.future;
+}
