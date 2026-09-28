@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../ads/application/ad_providers.dart';
+import '../../ads/data/rewarded_ad_service.dart';
 import '../../settings/application/settings_providers.dart';
 import '../../settings/domain/app_settings.dart';
 import '../domain/event_icons.dart';
@@ -99,10 +100,10 @@ class _IconPickerSheetState extends ConsumerState<IconPickerSheet> {
     required VoidCallback onUnlocked,
   }) async {
     setState(() => _busy = true);
-    final earned = await ref.read(rewardedAdServiceProvider).showForReward();
+    final outcome = await ref.read(rewardedAdServiceProvider).showForReward();
     if (!mounted) return;
     setState(() => _busy = false);
-    if (earned) {
+    if (outcome == RewardOutcome.earned) {
       await ref.read(settingsProvider.notifier).update((s) => unlock(s));
       if (mounted) onUnlocked();
     } else {

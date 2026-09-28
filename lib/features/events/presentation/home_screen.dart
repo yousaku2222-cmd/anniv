@@ -9,6 +9,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/time/clock.dart';
 import '../../ads/presentation/banner_ad_widget.dart';
 import '../../groups/application/group_providers.dart';
+import '../../notices/notices.dart';
 import '../application/event_providers.dart';
 import '../domain/event.dart';
 import '../domain/event_icons.dart';
@@ -27,7 +28,8 @@ class HomeScreen extends ConsumerWidget {
     final today = ref.watch(todayProvider);
     final a = context.anniv;
 
-    return Scaffold(
+    return NoticePopupGate(
+      child: Scaffold(
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -110,6 +112,7 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
       ),
+      ),
     );
   }
 }
@@ -147,10 +150,18 @@ class _Header extends StatelessWidget {
                 onTap: () => context.push('/widget'),
               ),
               const SizedBox(width: 8),
-              _HeaderButton(
-                icon: Icons.tune_rounded,
-                tooltip: '設定',
-                onTap: () => context.push('/settings'),
+              // The dot tells users there's unread news inside settings.
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _HeaderButton(
+                    icon: Icons.tune_rounded,
+                    tooltip: '設定',
+                    onTap: () => context.push('/settings'),
+                  ),
+                  const Positioned(
+                      top: -2, right: -2, child: NoticeUnreadDot()),
+                ],
               ),
             ],
           ),

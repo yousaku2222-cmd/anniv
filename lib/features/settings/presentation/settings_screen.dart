@@ -9,10 +9,12 @@ import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/time/day_time.dart';
 import '../../ads/application/ad_providers.dart';
 import '../../ads/data/ad_service.dart';
+import '../../ads/data/rewarded_ad_service.dart';
 import '../../ads/presentation/banner_ad_widget.dart';
 import '../../backup/application/backup_controller.dart';
 import '../../backup/domain/backup_codec.dart';
 import '../../groups/application/group_providers.dart';
+import '../../notices/notices.dart';
 import '../../purchase/application/purchase_providers.dart';
 import '../application/settings_providers.dart';
 import '../domain/app_settings.dart';
@@ -141,6 +143,19 @@ class SettingsScreen extends ConsumerWidget {
           const SectionLabel('アプリ'),
           _Group(children: [
             const _RemoveAdsRow(),
+            _Row(
+              icon: Icons.campaign_outlined,
+              title: noticesMenuTitle(context),
+              trailing: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  NoticeUnreadDot(),
+                  SizedBox(width: 6),
+                  Icon(Icons.chevron_right),
+                ],
+              ),
+              onTap: () => openNoticesScreen(context),
+            ),
             _Row(
               icon: Icons.info_outline,
               title: 'バージョン',
@@ -487,16 +502,25 @@ class _GroupManagerState extends ConsumerState<_GroupManager> {
     // Every group-add costs one rewarded-ad view (unless ads are removed).
     if (ref.read(adsEnabledProvider)) {
       setState(() => _busy = true);
-      final earned = await ref.read(rewardedAdServiceProvider).showForReward();
+      final outcome = await ref.read(rewardedAdServiceProvider).showForReward();
       if (!mounted) return;
       setState(() => _busy = false);
-      if (!earned) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('広告を再生できませんでした。もう一度お試しください。'),
-          ),
-        );
-        return;
+      switch (outcome) {
+        // No ad to show (no fill, account paused): let the user through.
+        case RewardOutcome.earned || RewardOutcome.unavailable:
+          break;
+        case RewardOutcome.offline:
+          messenger.showSnackBar(
+            const SnackBar(content: Text(kAdOfflineMessage)),
+          );
+          return;
+        case RewardOutcome.dismissed:
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('広告を再生できませんでした。もう一度お試しください。'),
+            ),
+          );
+          return;
       }
     }
 

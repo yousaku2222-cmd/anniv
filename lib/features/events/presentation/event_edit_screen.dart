@@ -6,6 +6,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/anniv_widgets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../ads/application/ad_providers.dart';
+import '../../ads/data/rewarded_ad_service.dart';
 import '../../ads/presentation/banner_ad_widget.dart';
 import '../../groups/application/group_providers.dart';
 import '../../notifications/application/notification_providers.dart';
@@ -119,10 +120,10 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
     if (_colorUnlockPendingArgb != null) return;
 
     setState(() => _colorUnlockPendingArgb = argb);
-    final earned = await ref.read(rewardedAdServiceProvider).showForReward();
+    final outcome = await ref.read(rewardedAdServiceProvider).showForReward();
     if (!mounted) return;
     setState(() => _colorUnlockPendingArgb = null);
-    if (earned) {
+    if (outcome == RewardOutcome.earned) {
       await ref.read(settingsProvider.notifier).update((s) => s.copyWith(
           unlockedColorValues: {...s.unlockedColorValues, argb}));
       if (mounted) _set(_draft.copyWith(colorValue: () => argb));
@@ -147,16 +148,30 @@ class _EventEditScreenState extends ConsumerState<EventEditScreen> {
 
     if (_needsAdToSave) {
       setState(() => _busy = true);
-      final earned = await ref.read(rewardedAdServiceProvider).showForReward();
+      final outcome = await ref.read(rewardedAdServiceProvider).showForReward();
       if (!mounted) return;
       setState(() => _busy = false);
-      if (!earned) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('広告を再生できませんでした。もう一度お試しください。'),
-          ),
-        );
-        return;
+      switch (outcome) {
+        case RewardOutcome.earned:
+          break;
+        // No ad to show (no fill, account paused): don't block the app's core
+        // feature over it.
+        case RewardOutcome.unavailable:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('広告を読み込めなかったため、広告なしで保存しました')),
+          );
+        case RewardOutcome.offline:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text(kAdOfflineMessage)),
+          );
+          return;
+        case RewardOutcome.dismissed:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('広告を再生できませんでした。もう一度お試しください。'),
+            ),
+          );
+          return;
       }
     }
 
