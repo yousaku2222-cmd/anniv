@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
+
+import 'build_channel.dart';
+
 /// AdMob unit IDs.
 ///
 /// [useTestAds] swaps in Google's public test units for development. Even with
@@ -15,16 +19,24 @@ class AdIds {
   /// While true, every install requests Google's official public test ad
   /// unit instead of the real one, so testers on unregistered devices see
   /// clearly-labeled test creatives instead of real (possibly no-fill) ads.
-  static const bool useTestAds = false;
+  ///
+  /// Debug/profile runs always use test ads so our own development sessions
+  /// never touch real inventory (self-clicks got the account suspended on
+  /// 2026-09-27). Pass --dart-define=TEST_ADS=true to force them in release.
+  static bool get useTestAds => _forceTestAds || BuildChannel.isTestFlight;
+  static const bool _forceTestAds =
+      !kReleaseMode || bool.fromEnvironment('TEST_ADS', defaultValue: false);
 
   /// Devices that should always receive test ads. The per-install hash changes
   /// on every reinstall, so prefer registering your daily phone in the AdMob
   /// console (Settings > Test devices). Add an id here only for a stable build.
   ///
-  /// Now that [useTestAds] is false, register your own daily-driver device(s)
+  /// Release builds use real ids, so register your own daily-driver device(s)
   /// here (or in the AdMob console) before opening real ads yourself, or the
   /// impressions/clicks risk being flagged as invalid traffic.
-  static const List<String> testDeviceIds = [];
+  static const List<String> testDeviceIds = [
+    '20535872D7F1C1AD800B618520C0A4F2', // Hi10_XPro tablet (Play release build)
+  ];
 
   // Google's always-available test units.
   static const String _androidTestBanner =

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../ad_ids.dart';
+import '../build_channel.dart';
 
 /// Owns one-time ad SDK setup: consent (UMP), iOS App Tracking Transparency,
 /// and `MobileAds.initialize`. [init] is idempotent, so callers (e.g. the
@@ -71,6 +72,7 @@ class GoogleAdService implements AdService {
           RequestConfiguration(testDeviceIds: AdIds.testDeviceIds),
         );
       }
+      await BuildChannel.init();
       await MobileAds.instance.initialize();
       _ready = true;
     } catch (e) {
