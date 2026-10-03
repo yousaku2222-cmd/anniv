@@ -424,6 +424,15 @@ class _RemoveAdsRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final a = context.anniv;
+    // Surface purchase feedback the moment it happens (a cancelled purchase, a
+    // restore with nothing to restore) instead of holding it until the next tap.
+    ref.listen(purchaseControllerProvider.select((s) => s.message),
+        (previous, next) {
+      if (next == null) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(next)));
+      ref.read(purchaseControllerProvider.notifier).clearMessage();
+    });
     final removed = ref.watch(adsRemovedProvider);
     if (removed) {
       return _Row(
@@ -435,7 +444,6 @@ class _RemoveAdsRow extends ConsumerWidget {
 
     final purchase = ref.watch(purchaseControllerProvider);
     final controller = ref.read(purchaseControllerProvider.notifier);
-    final messenger = ScaffoldMessenger.of(context);
 
     if (!purchase.storeAvailable) {
       return _Row(
@@ -466,13 +474,7 @@ class _RemoveAdsRow extends ConsumerWidget {
                       fontSize: 14)),
           onTap: (purchase.pending || purchase.removeAdsProduct == null)
               ? null
-              : () {
-                  if (purchase.error != null) {
-                    messenger.showSnackBar(
-                        SnackBar(content: Text(purchase.error!)));
-                  }
-                  controller.buyRemoveAds();
-                },
+              : () => controller.buyRemoveAds(),
         ),
         Divider(height: 1, color: a.line),
         _Row(

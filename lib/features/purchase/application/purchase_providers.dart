@@ -13,7 +13,7 @@ class PurchaseState {
     this.storeAvailable = false,
     this.removeAdsProduct,
     this.pending = false,
-    this.error,
+    this.message,
   });
 
   /// The billing service is reachable.
@@ -25,7 +25,10 @@ class PurchaseState {
 
   /// A purchase or restore is in flight.
   final bool pending;
-  final String? error;
+
+  /// One-shot text to surface to the user: a failure, or a plain notice such
+  /// as a cancelled purchase. The UI shows it once and then clears it.
+  final String? message;
 
   String get priceLabel => removeAdsProduct?.price ?? '';
 
@@ -33,13 +36,13 @@ class PurchaseState {
     bool? storeAvailable,
     ProductDetails? removeAdsProduct,
     bool? pending,
-    String? Function()? error,
+    String? Function()? message,
   }) {
     return PurchaseState(
       storeAvailable: storeAvailable ?? this.storeAvailable,
       removeAdsProduct: removeAdsProduct ?? this.removeAdsProduct,
       pending: pending ?? this.pending,
-      error: error != null ? error() : this.error,
+      message: message != null ? message() : this.message,
     );
   }
 }
@@ -81,43 +84,50 @@ class PurchaseController extends Notifier<PurchaseState> {
     }
   }
 
+  /// Clears the one-shot [PurchaseState.message] after the UI has shown it.
+  void clearMessage() {
+    if (state.message != null) state = state.copyWith(message: () => null);
+  }
+
   Future<void> buyRemoveAds() async {
     final product = state.removeAdsProduct;
     if (product == null) return;
-    state = state.copyWith(pending: true, error: () => null);
+    state = state.copyWith(pending: true, message: () => null);
     try {
       await _iap.buyNonConsumable(
         purchaseParam: PurchaseParam(productDetails: product),
       );
     } catch (e) {
-      state = state.copyWith(pending: false, error: () => '$e');
-      return;
+      state = state.copyWith(pending: false, message: () => '$e');
     }
-    // buyNonConsumable() only kicks the platform purchase sheet off — if the
-    // store never emits on purchaseStream (store misconfiguration, a stalled
-    // sheet, etc.) _onPurchases never runs and `pending` would spin forever.
-    // Mirrors the same fallback in restore().
-    await Future<void>.delayed(const Duration(seconds: 20));
-    if (state.pending) {
-      state = state.copyWith(pending: false, error: () => '購入処理がタイムアウトしました。もう一度お試しください');
-    }
+    // Deliberately no timeout here. buyNonConsumable() only kicks the platform
+    // purchase sheet off, and everything after that is the person's own pace:
+    // on a device that is not signed in to an App Store account yet, iOS puts a
+    // sign-in prompt in front of the sheet, which easily takes longer than any
+    // timeout we could pick. A timeout fired mid-sheet used to drop `pending`
+    // and show a bogus "timed out" error while the real sheet was still open —
+    // App Review read that as the purchase never starting (Guideline 2.1(b),
+    // 2026-10-02). StoreKit always reports back through purchaseStream
+    // (purchased / restored / canceled / error), so `pending` is cleared there.
   }
 
   Future<void> restore() async {
-    state = state.copyWith(pending: true, error: () => null);
+    state = state.copyWith(pending: true, message: () => null);
     try {
       await _iap.restorePurchases();
     } catch (e) {
-      state = state.copyWith(pending: false, error: () => '$e');
+      state = state.copyWith(pending: false, message: () => '$e');
       return;
     }
     // restorePurchases() only kicks the platform restore off — when there's
     // nothing to restore, purchaseStream never emits and _onPurchases never
-    // runs, so nothing would ever clear `pending`. Give any in-flight
-    // restored purchases a window to arrive, then stop waiting regardless.
-    await Future<void>.delayed(const Duration(seconds: 8));
+    // runs, so nothing would ever clear `pending`. Give any restored purchases
+    // a window to arrive, then stop waiting and say so. Unlike a purchase this
+    // waits on the store rather than on the person, so a timeout is safe here.
+    await Future<void>.delayed(const Duration(seconds: 12));
     if (state.pending) {
-      state = state.copyWith(pending: false);
+      state = state.copyWith(
+          pending: false, message: () => '復元できる購入はありませんでした');
     }
   }
 
@@ -135,12 +145,13 @@ class PurchaseController extends Notifier<PurchaseState> {
           await ref
               .read(settingsProvider.notifier)
               .update((s) => s.copyWith(adRemoved: true));
-          state = state.copyWith(pending: false, error: () => null);
+          state = state.copyWith(pending: false, message: () => null);
         case PurchaseStatus.error:
           state = state.copyWith(
-              pending: false, error: () => pd.error?.message ?? '購入に失敗しました');
+              pending: false, message: () => pd.error?.message ?? '購入に失敗しました');
         case PurchaseStatus.canceled:
-          state = state.copyWith(pending: false);
+          state = state.copyWith(
+              pending: false, message: () => '購入はキャンセルされました');
       }
       if (pd.pendingCompletePurchase) {
         await _iap.completePurchase(pd);
